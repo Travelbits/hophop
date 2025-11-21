@@ -1,0 +1,13 @@
+[package]
+name = "ts-103-636-numbers"
+version = "0.0.0"
+edition = "2024"
+
+description = "Constants from and around ETSI TS 103-636 'DECT-2020 New Radio (NR)'"
+documentation = "https://docs.rs/ts-103-636-numbers/"
+repository = "https://github.com/ariel-os/"
+keywords = ["dect", "nr+"]
+categories = ["no-std::no-alloc"]
+license = "MIT OR Apache-2.0"
+
+[dependencies]
