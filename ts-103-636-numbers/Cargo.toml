@@ -11,3 +11,7 @@ categories = ["no-std::no-alloc"]
 license = "MIT OR Apache-2.0"
 
 [dependencies]
+defmt = { version = "1.0.1", optional = true }
+
+[features]
+defmt = ["dep:defmt"]

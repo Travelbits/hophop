@@ -63,6 +63,34 @@ impl core::fmt::Debug for EndpointMultiplexingAddress {
     }
 }
 
+#[cfg(feature = "defmt")]
+impl defmt::Format for EndpointMultiplexingAddress {
+    fn format(&self, f: defmt::Formatter<'_>) {
+        if let Some(description) = self.description() {
+            defmt::write!(
+                f,
+                "EndpointMultiplexingAddress {{ .0: {:#06x}, description: {} }}",
+                self.0, description
+            );
+        } else {
+            let range = if RANGE_COMPANY_SPECIFIC.contains(self) {
+                &"company specific"
+            } else if RANGE_FREEUSE.contains(self) {
+                &"free use"
+            } else if RANGE_PUBLIC_SPEC.contains(self) {
+                &"public specification"
+            } else {
+                &"reserved"
+            };
+            defmt::write!(
+                f,
+                "EndpointMultiplexingAddress {{ .0: {:#06x}, range: {} }}",
+                self.0, range
+            );
+        }
+    }
+}
+
 // Those are not associated constants of EndpointMultiplexingAddress because struct associated
 // constants can not be wildcard imported (and for those a wildcard import makes a lot of sense).
 
