@@ -12,3 +12,12 @@
 #![no_std]
 
 pub mod endpoint_multiplexing;
+
+pub mod mac_ie;
+pub mod mac_pdu;
+
+/// Error used in fallible construction when bits that should have been masked as part of
+/// processing an incoming data structure are set, eg. when the MSB of an u8 is set when it gets
+/// passed into the constructor of a 6-bit long field's value.
+#[derive(Debug)]
+pub struct ExcessiveBitsSet;

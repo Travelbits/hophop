@@ -28,11 +28,13 @@ impl EndpointMultiplexingAddress {
 
 // Once feature(derive_from) has been stabilized, use that.
 impl From<u16> for EndpointMultiplexingAddress {
+    #[inline]
     fn from(value: u16) -> Self {
         Self(value)
     }
 }
 impl From<EndpointMultiplexingAddress> for u16 {
+    #[inline]
     fn from(value: EndpointMultiplexingAddress) -> Self {
         value.0
     }
@@ -70,7 +72,8 @@ impl defmt::Format for EndpointMultiplexingAddress {
             defmt::write!(
                 f,
                 "EndpointMultiplexingAddress {{ .0: {:#06x}, description: {} }}",
-                self.0, description
+                self.0,
+                description
             );
         } else {
             let range = if RANGE_COMPANY_SPECIFIC.contains(self) {
@@ -85,7 +88,8 @@ impl defmt::Format for EndpointMultiplexingAddress {
             defmt::write!(
                 f,
                 "EndpointMultiplexingAddress {{ .0: {:#06x}, range: {} }}",
-                self.0, range
+                self.0,
+                range
             );
         }
     }
