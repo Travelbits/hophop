@@ -8,30 +8,6 @@ As a baseline for any trouble related to getting the PHY working, see those two 
 Both are based on Zephyr and the Nordic SDK;
 if you are not familiar with that, they are set up like this:
 
-<!--
-
-## Failed Zephyr-style approach
-
-* [Ensure the DECT firmware is flashed](./dect-firmware.md) (or don't, just to see which errors happen)
-* Inside the main SDK,
-  * `python3 -m venv .venv` (just installing west via pipx does not quite suffice, as there will later be more dependencies that have to be satisified in the same Python environment)
-  * `source .venv/bin/activate`
-  * `pip install west`
-  * `rm -rf zephyr` (not needed when going through nrfutil installation -- but that's a pretty big SDK bloat)
-  * `west init`
-  * `git checkout zephyr` (not sure if needed)
-* Inside the sample project,
-  * `west packages pip --install`
-  * `west update`
-  * `west zephyr-export` (probably not needed)
-  * `source ../../../../zephyr/zephyr-env.sh` (maybe needed?)
-  * `west sdk install` ☕ (probably there's a shorter version that suffices, but --toolchains arm-zephyr-eabi wasn't it) -- and beware this installs into ~/zephyr-sdk-0.17.4/
-  * `west build -p --board nrf9151dk/nrf9151dk/ns` (for the hello, add ` -- -DEXTRA_CONF_FILE=overlay-eu.conf`)
-  * `west flash`
-    ... still doesn't work
-
--->
-
 ## Building and installing using the Nordic toolchain
 
 Based on <https://docs.nordicsemi.com/bundle/ncs-3.2.0-preview2/page/nrf/installation/install_ncs.html>
