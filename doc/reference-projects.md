@@ -8,6 +8,14 @@ As a baseline for any trouble related to getting the PHY working, see those two 
 Both are based on Zephyr and the Nordic SDK;
 if you are not familiar with that, they are set up like this:
 
+Additional apps (not tested so far):
+
+* [lauri-piikivi/dect-nr-samples](https://github.com/lauri-piikivi/dect-nr-samples/tree/main/dect-nr-samples)
+
+  Working on an older (< 3.x) libmodem version (with per-event-type callbacks in a struct).
+  
+  Sniffer and Wireshark dissector (which appears to use a different format than the Wireshark 4.6 built-in DECT NR+ dissector).
+
 ## Building and installing using the Nordic toolchain
 
 Based on <https://docs.nordicsemi.com/bundle/ncs-3.2.0-preview2/page/nrf/installation/install_ncs.html>
