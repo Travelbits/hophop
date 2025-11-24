@@ -8,3 +8,4 @@ ariel-os = { path = "build/imports/ariel-os/src/ariel-os", features = ["time"] }
 ariel-os-boards = { path = "build/imports/ariel-os/src/ariel-os-boards" }
 
 nrf-modem = { version = "*", features = ["dect"] }
+ts-103-636-numbers = { path = "../ts-103-636-numbers/", features = ["defmt"] }
