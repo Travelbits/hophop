@@ -29,4 +29,13 @@ nRF9151
     [WARN ] UICR bits were gravely misconfigure. Fixed, but this requires a reboot; you may want to attach to the soon-running session (test_libmodem test-libmodem/src/main.rs:100)
     ```
 
-    To avoid getting in this situation, it helps to .
+    (Or, currently, not being sure why there is a difference, but less readably):
+
+    ```
+    [DEBUG] ariel-os-embassy::init(): using interrupt mode executor (ariel_os_embassy ariel-os-embassy/src/lib.rs:152)
+    Firmware exited unexpectedly: Exception
+     WARN probe_rs_debug::debug_info: UNWIND: Error while checking for exception context. The stack trace will not include the calling frames. : Probe(Register("No Stack Pointer register. Please report this as a bug."))
+     ```
+
+    To avoid getting in this situation, it helps to not be in any modem operation when cancelling the run program (eg. with Ctrl-C from probe-rs);
+    the precise source and better mitigation unclear and subject to investigation.
