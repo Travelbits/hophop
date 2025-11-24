@@ -1,0 +1,11 @@
+imports:
+  - git:
+      url: https://github.com/chrysn-pull-requests/ariel-os
+      #commit: for-hophop
+      commit: f3c81479311db4593c9664f68e08a14ace9c70f8
+    dldir: ariel-os
+
+apps:
+  - name: hophop-examples
+    selects:
+      - nrf91-modem

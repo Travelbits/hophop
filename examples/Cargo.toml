@@ -1,0 +1,10 @@
+[package]
+name = "hophop-examples"
+version = "0.0.0"
+edition = "2024"
+
+[dependencies]
+ariel-os = { path = "build/imports/ariel-os/src/ariel-os", features = ["time"] }
+ariel-os-boards = { path = "build/imports/ariel-os/src/ariel-os-boards" }
+
+nrf-modem = { version = "*", features = ["dect"] }
