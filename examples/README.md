@@ -60,3 +60,15 @@ $ laze build -b nrf9151-dk run --bin rx
 Note that this only produces output when data is sent on channel 1665;
 use `dect ping -c` or `dect mac beacon_start -c 1665`
 in the Nordic `dect_shell` example to send data from another boad.
+
+Running the TX example
+----------------------
+
+```
+$ laze build -b nrf9151-dk run --bin tx
+```
+
+This produces a single manually crafted beacon on chnanel 1665
+whenever Button 1 is pressed.
+Beware that this does not perform LBYT:
+The user is expected to monitor that channel in parallel.

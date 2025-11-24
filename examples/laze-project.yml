@@ -9,3 +9,5 @@ apps:
   - name: hophop-examples
     selects:
       - nrf91-modem
+      # Actually only for the tx example
+      - has_buttons
