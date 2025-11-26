@@ -5,8 +5,16 @@ For any of the code here to work, the nRF9151's network core
 needs to be flashed with dedicated firmware provided by Nordic
 (`mfw-nr+_nrf91x1_1.1.0.zip`).
 
-This image is currently not available for public download;
-quoting [its docs](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrfxlib/nrf_modem/doc/dectphy.html),
+This image is currently available through Nordic's "DECT NR+ early access program".
+To obtain it,
+fill your EMail address in [the early access program access form](https://share.hsforms.com/1O1l57xxoSgilkmPp8nhJHA1618t);
+you will recevive an invitation to their "JFrog" platform (might take 1-2 days).
+Beware that this EMail address may be shown to other JFrog participants.
+Once you can log in to the platform,
+you find the firmware image under Artifactory / Artifacts / MFW.
+
+If that link should become unavailable,
+as per [their docs](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrfxlib/nrf_modem/doc/dectphy.html),
 "you must contact the Nordic Semiconductor sales department".
 
 Flashing this may be obvious for regular users of Nordic's tools,
