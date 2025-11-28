@@ -101,6 +101,118 @@ impl From<IEType6bit> for u8 {
     }
 }
 
+/// An IE type as uses with MAC Extension field encoding 11
+///
+/// Note that this type also encodes the byte length, making it 6-bit again; in a sense, it joins
+/// tables 6.3.4-3 and 6.3.4-4 by composing the length into the key.
+///
+/// Unlike the 6-bit variant that has a trivial conversion to u8, this uses deciated `from_` and
+/// accessor methods to declare that it is the value combined with the length bit that gets transported.
+///
+/// ## Invariants
+///
+/// The inner field only has the lowest 6 bit set. This is not a safety invariant: This module will
+/// only either produce wrong results or panic if the upper bits are set.
+#[derive(PartialEq, Eq, Copy, Clone)]
+pub struct IEType5bit(u8);
+
+impl IEType5bit {
+    /// Definition of the element from Table 6.3.4-3 and -4
+    ///
+    /// Editorial liberty is used to convert remove "IE" and "message" suffixes.
+    const fn description(&self) -> Option<&'static str> {
+        Some(match self.0 {
+            0b0_00000 => "Padding",
+            0b0_00001 => "Configuration Request",
+            0b0_00010 => "Keep alive",
+            0b0_10000 => "MAC Security Info",
+            0b0_11110 => "Escape",
+
+            0b1_00000 => "Padding",
+            0b1_00001 => "Radio Device Status",
+            0b1_00010 => "RD capability short",
+            0b1_00011 => "Association Control",
+            0b1_11110 => "Escape",
+
+            _ => return None,
+        })
+    }
+
+    /// Returns the length of the IE (0 or 1)
+    pub const fn len(&self) -> usize {
+        (self.0 >> 5) as _
+    }
+
+    /// Returns the numeric value of the IE (5 bit)
+    pub const fn value(&self) -> u8 {
+        self.0 & 0x1f
+    }
+
+    /// Returns the combined length-and-value bits
+    pub const fn composite(&self) -> u8 {
+        self.0
+    }
+
+    /// Creates an IE label from its components.
+    ///
+    /// Errs if length is not in (0, 1) or value exceed the 5 lowest bits.
+    ///
+    /// Inverse function of the tuple created from [`Self::len()`] and [`Self::value()`]
+    pub const fn try_from_len_and_value(len: usize, value: u8) -> Result<Self, super::ExcessiveBitsSet> {
+        if len >= 2 || value & !0x1f != 0 {
+            return Err(super::ExcessiveBitsSet);
+        }
+        Ok(Self((len as u8) << 5 | value))
+    }
+
+    /// Creates an IE label from its combined length-and-value bits.
+    ///
+    /// Errs if input exceeds the 6 lowest bits.
+    ///
+    /// Inverse function of the tuple created from [`Self::composite()`].
+    pub const fn try_from_composite(composite: u8) -> Result<Self, super::ExcessiveBitsSet> {
+        if composite & !0x3f == 0 {
+            Ok(Self(composite))
+        } else {
+            Err(super::ExcessiveBitsSet)
+        }
+    }
+}
+
+impl core::fmt::Debug for IEType5bit {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        let mut debugtuple = f.debug_struct("IEType5bit");
+        debugtuple.field(".len", &self.len());
+        debugtuple.field(".value", &format_args!("{:#04x}", self.value()));
+        if let Some(description) = self.description() {
+            debugtuple.field("description", &description);
+        }
+        debugtuple.finish()
+    }
+}
+
+#[cfg(feature = "defmt")]
+impl defmt::Format for IEType6bit {
+    fn format(&self, f: defmt::Formatter<'_>) {
+        if let Some(description) = self.description() {
+            defmt::write!(
+                f,
+                "IEType5bit {{ .len: {}, .value {:#04x}, description: {} }}",
+                self.len() as u8,
+                self.value(),
+                description
+            );
+        } else {
+            defmt::write!(
+                f,
+                "IEType5bit {{ .len {}, .value: {:#04x} }}",
+                self.len() as u8,
+                self.value(),
+            );
+        }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use super::*;
@@ -108,6 +220,10 @@ mod test {
     #[test]
     fn test_convert() {
         IEType6bit::try_from(0xff).unwrap_err();
+
+        IEType5bit::try_from_composite(0xff).unwrap_err();
+        IEType5bit::try_from_len_and_value(0, 0x3f).unwrap_err();
+        IEType5bit::try_from_len_and_value(2, 0).unwrap_err();
     }
 
     #[test]
@@ -124,6 +240,17 @@ mod test {
             // reserved
             &format!("{:?}", IEType6bit::try_from(0b011101).unwrap()),
             &"IEType6bit { .0: 0x1d }"
+        );
+
+        assert_eq!(
+            &format!("{:?}", IEType5bit::try_from_composite(0b100010).unwrap()),
+            &"IEType5bit { .len: 1, .value: 0x02, description: \"RD capability short\" }"
+        );
+
+        assert_eq!(
+            // reserved
+            &format!("{:?}", IEType5bit::try_from_composite(0b100100).unwrap()),
+            &"IEType5bit { .len: 1, .value: 0x04 }"
         );
     }
 }
