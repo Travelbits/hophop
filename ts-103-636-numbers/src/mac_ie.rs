@@ -15,6 +15,9 @@ impl IEType6bit {
     /// Editorial liberty is used to convert remove "IE" and "message" suffixes.
     const fn description(&self) -> Option<&'static str> {
         Some(match self.0 {
+            // Not using the equivalent constants: that wouldn't make it any mor readable, and if
+            // this gets extended frequently, it needs X-macro or code generation driven
+            // population anyway.
             0b000000 => "Padding",
             0b000001 => "Higher layer signalling - flow 1",
             0b000010 => "Higher layer signalling - flow 2",
@@ -48,6 +51,43 @@ impl IEType6bit {
             _ => return None,
         })
     }
+}
+
+pub mod ie6bit {
+    // Those are not associated constants of EndpointMultiplexingAddress because struct associated
+    // constants can not be wildcard imported (and for those a wildcard import makes a lot of sense).
+    use super::IEType6bit;
+
+    pub const PADDING: IEType6bit = IEType6bit(0b000000);
+    pub const HIGHER_LAYER_SIGNALLING_FLOW_1: IEType6bit = IEType6bit(0b000001);
+    pub const HIGHER_LAYER_SIGNALLING_FLOW_2: IEType6bit = IEType6bit(0b000010);
+    pub const USER_PLANE_DATA_FLOW_1: IEType6bit = IEType6bit(0b000011);
+    pub const USER_PLANE_DATA_FLOW_2: IEType6bit = IEType6bit(0b000100);
+    pub const USER_PLANE_DATA_FLOW_3: IEType6bit = IEType6bit(0b000101);
+    pub const USER_PLANE_DATA_FLOW_4: IEType6bit = IEType6bit(0b000110);
+    pub const NETWORK_BEACON: IEType6bit = IEType6bit(0b001000);
+    pub const CLUSTER_BEACON: IEType6bit = IEType6bit(0b001001);
+    pub const ASSOCIATION_REQUEST: IEType6bit = IEType6bit(0b001010);
+    pub const ASSOCIATION_RESPONSE: IEType6bit = IEType6bit(0b001011);
+    pub const ASSOCIATION_RELEASE: IEType6bit = IEType6bit(0b001100);
+    pub const RECONFIGURATION_REQUEST: IEType6bit = IEType6bit(0b001101);
+    pub const RECONFIGURATION_RESPONSE: IEType6bit = IEType6bit(0b001110);
+    pub const ADDITIONAL_MAC_MESSAGES: IEType6bit = IEType6bit(0b001111);
+    pub const MAC_SECURITY_INFO: IEType6bit = IEType6bit(0b010000);
+    pub const ROUTE_INFO: IEType6bit = IEType6bit(0b010001);
+    pub const RESOURCE_ALLOCATION: IEType6bit = IEType6bit(0b010010);
+    pub const RANDOM_ACCESS_RESOURCE: IEType6bit = IEType6bit(0b010011);
+    pub const RD_CAPABILITY: IEType6bit = IEType6bit(0b010100);
+    pub const NEIGHBOURING: IEType6bit = IEType6bit(0b010101);
+    pub const BROADCAST_INDICATION: IEType6bit = IEType6bit(0b010110);
+    pub const GROUP_ASSIGNMENT: IEType6bit = IEType6bit(0b010111);
+    pub const LOAD_INFO: IEType6bit = IEType6bit(0b011000);
+    pub const MEASUREMENT_REPORT: IEType6bit = IEType6bit(0b011001);
+    pub const SOURCE_ROUTING: IEType6bit = IEType6bit(0b011010);
+    pub const JOINING_BEACON: IEType6bit = IEType6bit(0b011011);
+    pub const JOINING_INFORMATION: IEType6bit = IEType6bit(0b011100);
+    pub const ESCAPE: IEType6bit = IEType6bit(0b011110);
+    pub const IE_TYPE_EXTENSION: IEType6bit = IEType6bit(0b011111);
 }
 
 impl core::fmt::Debug for IEType6bit {
@@ -177,6 +217,26 @@ impl IEType5bit {
             Err(super::ExcessiveBitsSet)
         }
     }
+}
+
+pub mod ie5bit_len0 {
+    use super::IEType5bit;
+
+    pub const PADDING: IEType5bit = IEType5bit(0b0_00000);
+    pub const CONFIGURATION_REQUEST: IEType5bit = IEType5bit(0b0_00001);
+    pub const KEEP_ALIVE: IEType5bit = IEType5bit(0b0_00010);
+    pub const MAC_SECURITY_INFO: IEType5bit = IEType5bit(0b0_10000);
+    pub const ESCAPE: IEType5bit = IEType5bit(0b0_11110);
+}
+
+pub mod ie5bit_len1 {
+    use super::IEType5bit;
+
+    pub const PADDING: IEType5bit = IEType5bit(0b1_00000);
+    pub const RADIO_DEVICE_STATUS: IEType5bit = IEType5bit(0b1_00001);
+    pub const RD_CAPABILITY_SHORT: IEType5bit = IEType5bit(0b1_00010);
+    pub const ASSOCIATION_CONTROL: IEType5bit = IEType5bit(0b1_00011);
+    pub const ESCAPE: IEType5bit = IEType5bit(0b1_11110);
 }
 
 impl core::fmt::Debug for IEType5bit {
