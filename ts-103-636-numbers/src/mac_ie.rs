@@ -112,11 +112,7 @@ impl defmt::Format for IEType6bit {
                 description
             );
         } else {
-            defmt::write!(
-                f,
-                "IEType6bit {{ .0: {:#04x} }}",
-                self.0
-            );
+            defmt::write!(f, "IEType6bit {{ .0: {:#04x} }}", self.0);
         }
     }
 }
@@ -198,7 +194,10 @@ impl IEType5bit {
     /// Errs if length is not in (0, 1) or value exceed the 5 lowest bits.
     ///
     /// Inverse function of the tuple created from [`Self::len()`] and [`Self::value()`]
-    pub const fn try_from_len_and_value(len: usize, value: u8) -> Result<Self, super::ExcessiveBitsSet> {
+    pub const fn try_from_len_and_value(
+        len: usize,
+        value: u8,
+    ) -> Result<Self, super::ExcessiveBitsSet> {
         if len >= 2 || value & !0x1f != 0 {
             return Err(super::ExcessiveBitsSet);
         }
