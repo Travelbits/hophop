@@ -8,6 +8,7 @@
 use ariel_os::debug::log::{info, warn, Hex};
 
 use ts_103_636_numbers as numbers;
+use ts_103_636_utils as utils;
 
 fn log_header(header: &[u8]) {
     // Following ETSI TS 103 636-4 V2.1.1 Section 6.2
@@ -132,39 +133,12 @@ fn log_data(data: &[u8]) {
         info!("No link-layer security implemented, bailing.");
         return;
     }
-    let mut tail = &data[end_common_header..];
-    while !tail.is_empty() {
-        let mac_ext = tail[0] >> 6;
-        let ie_type = tail[0] & 0x3f;
-        let ie_type = numbers::mac_ie::IEType6bit::try_from(ie_type).unwrap();
-        match mac_ext {
-            numbers::mac_pdu::mux_ext::NO_LENGTH_FIELD => {
-                // No length
-                info!("Don't know how to decode no-length fields, bailing.");
-                return;
-            }
-            numbers::mac_pdu::mux_ext::LENGTH_8BIT => {
-                let len = tail[1];
-                let end = 2 + len as usize;
-                let payload = &tail[2..end];
-                info!("IE type {:?} payload {}", ie_type, Hex(&payload));
-                tail = &tail[end..];
-                continue;
-            }
-            numbers::mac_pdu::mux_ext::LENGTH_16BIT => {
-                let len = u16::from_be_bytes(tail[1..3].try_into().unwrap());
-                let end = 3 + len as usize;
-                let payload = &tail[3..end];
-                info!("IE type {:?} payload {}", ie_type, Hex(&payload));
-                tail = &tail[end..];
-                continue;
-            }
-            numbers::mac_pdu::mux_ext::SHORT_IE => {
-                info!("Don't know how to decode Short IE, bailing.");
-                return;
-            }
-            _ => unreachable!(),
-        }
+    for item in utils::mac_ie::InformationElement::parse_stream(&data[end_common_header..]) {
+        let Ok(item) = item else {
+            warn!("Failed to parse item, aborting.");
+            return;
+        };
+        info!("IE {:?}, payload {:?}", item.ie_number(), item.payload())
     }
     info!("Complete message processed.");
 }

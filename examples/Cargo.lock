@@ -1637,6 +1637,7 @@ dependencies = [
  "ariel-os-boards",
  "nrf-modem",
  "ts-103-636-numbers",
+ "ts-103-636-utils",
 ]
 
 [[package]]
@@ -2777,6 +2778,15 @@ name = "ts-103-636-numbers"
 version = "0.0.0"
 dependencies = [
  "defmt",
+]
+
+[[package]]
+name = "ts-103-636-utils"
+version = "0.0.0"
+dependencies = [
+ "defmt",
+ "embedded-io 0.7.1",
+ "ts-103-636-numbers",
 ]
 
 [[package]]
