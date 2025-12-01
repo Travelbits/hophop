@@ -1,0 +1,36 @@
+name: Build
+
+on:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v6
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install stable toolchain (rest will be pulled by laze target)
+        uses: dtolnay/rust-toolchain@1.91.1
+        with:
+          components: rustfmt, clippy
+
+      - name: Install laze
+        uses: taiki-e/install-action@v2
+        with:
+          tool: laze@0.1
+
+      - name: "Installing Ariel OS prerequisites through apt"
+        run: sudo apt-get install ninja-build clang
+
+      - name: "Install Ariel OS prerequisites through laze"
+        run: |
+          # For unknown reasons this only works in the main repo; a trial run
+          # ensures that the right repo is alredy checked out
+          laze build -C examples/ install-toolchain || true
+          laze build -C examples/build/imports/ariel-os/ install-toolchain
+
+      - run: |
+          ./test.sh
