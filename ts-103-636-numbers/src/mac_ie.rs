@@ -251,7 +251,7 @@ impl core::fmt::Debug for IEType5bit {
 }
 
 #[cfg(feature = "defmt")]
-impl defmt::Format for IEType6bit {
+impl defmt::Format for IEType5bit {
     fn format(&self, f: defmt::Formatter<'_>) {
         if let Some(description) = self.description() {
             defmt::write!(
