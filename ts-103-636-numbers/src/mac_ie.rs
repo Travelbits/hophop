@@ -175,6 +175,10 @@ impl IEType5bit {
     }
 
     /// Returns the length of the IE (0 or 1)
+    #[expect(
+        clippy::len_without_is_empty,
+        reason = "emptiness is not distinct here"
+    )]
     pub const fn len(&self) -> usize {
         (self.0 >> 5) as _
     }
@@ -201,7 +205,7 @@ impl IEType5bit {
         if len >= 2 || value & !0x1f != 0 {
             return Err(super::ExcessiveBitsSet);
         }
-        Ok(Self((len as u8) << 5 | value))
+        Ok(Self(((len as u8) << 5) | value))
     }
 
     /// Creates an IE label from its combined length-and-value bits.

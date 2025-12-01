@@ -26,7 +26,7 @@ pub struct InformationElement<'a> {
     payload: &'a [u8],
 }
 
-impl<'a> core::fmt::Debug for InformationElement<'a> {
+impl core::fmt::Debug for InformationElement<'_> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("InformationElement")
             .field("head", &self.head)
@@ -94,6 +94,15 @@ impl<'a> InformationElement<'a> {
         Ok(Self { head, payload })
     }
 
+    /// Creates an IE out of a 5-bit MAC IE ("Short IE")
+    ///
+    /// # Errors
+    ///
+    /// This errs if the input data length does not match the IE type.
+    ///
+    /// # Future development
+    ///
+    /// See [`Self::new_6bit_with_length`].
     pub fn new_5bit(
         type_: numbers::mac_ie::IEType5bit,
         payload: &'a [u8],
@@ -117,12 +126,16 @@ impl<'a> InformationElement<'a> {
     /// Given the structure of the IEs, the only syntactic parsing error produced by this is not
     /// having enough data.
     ///
-    /// A second case that can produce parsing errors are MAC_Ext=00 (IE type defines length)
+    /// A second case that can produce parsing errors are MAC_Ext 00 (IE type defines length)
     /// values where the IE is not known; those too produce a paring error, as they have the same
     /// effect of terminating processing prematurely and irrecoverably.
     ///
     /// On error, the input slice is still advanced, but not left in a position where further
     /// elements can be expected to be decoded.
+    #[expect(
+        clippy::missing_panics_doc,
+        reason = "Local invariant ensures this does not happen"
+    )]
     pub fn parse<'buf>(data: &mut &'buf [u8]) -> Result<InformationElement<'buf>, ParsingError> {
         let head = *data.split_off_first().ok_or(ParsingError)?;
         let mac_ext = head >> 6;
@@ -145,16 +158,16 @@ impl<'a> InformationElement<'a> {
                 let low = *data.split_off_first().ok_or(ParsingError)?;
                 (u16::from(high) << 8) | u16::from(low)
             }
-            numbers::mac_pdu::mux_ext::SHORT_IE => ((head >> 5) & 1) as u16,
+            numbers::mac_pdu::mux_ext::SHORT_IE => ((head >> 5) & 1).into(),
             _ => unreachable!("Bit shift only admits those values"),
         };
         let payload = data.split_off(..len as usize).ok_or(ParsingError)?;
         Ok(InformationElement { head, payload })
     }
 
-    pub fn parse_stream<'buf>(
-        mut data: &'buf [u8],
-    ) -> impl Iterator<Item = Result<InformationElement<'buf>, ParsingError>> {
+    pub fn parse_stream(
+        mut data: &[u8],
+    ) -> impl Iterator<Item = Result<InformationElement<'_>, ParsingError>> {
         // There might be room for a bit more optimized and a bit more ideal from_result_fn that
         // iterates as long as there are Ok items, but this works, especially as we can exhaust the
         // data slice.
@@ -175,7 +188,12 @@ impl<'a> InformationElement<'a> {
     /// Number encoded in the header.
     ///
     /// This may not be ideal API yet; it produces what can easily be expressed in terms of the
-    /// [`ts_103_636_numbers::`]
+    /// [`ts_103_636_numbers::mac_ie`] as wrapped in an [`AnyIeType`] union.
+    #[expect(
+        clippy::missing_panics_doc,
+        reason = "Local invariant ensures this does not happen"
+    )]
+    #[must_use]
     pub fn ie_number(&self) -> AnyIeType {
         let low_6_bits = self.head & 0x3f;
         match self.head >> 6 {
@@ -190,24 +208,40 @@ impl<'a> InformationElement<'a> {
     }
 
     /// Payload data in the IE.
+    #[must_use]
     pub fn payload(&self) -> &'a [u8] {
         self.payload
     }
 
     /// Serializes into any [`embedded_io::Write`]r.
+    ///
+    /// # Errors
+    ///
+    /// This merely forwards any errors of the writer.
+    #[expect(
+        clippy::missing_panics_doc,
+        reason = "Panics only happen when type level invariants are not upheld"
+    )]
     pub fn serialize<W: embedded_io::Write>(&self, w: &mut W) -> Result<(), W::Error> {
         w.write(&[self.head])?;
         let mac_ext = self.head >> 6;
         match mac_ext {
             numbers::mac_pdu::mux_ext::LENGTH_8BIT => {
-                w.write(&[self.payload.len() as _])?;
+                w.write(&[self
+                    .payload
+                    .len()
+                    .try_into()
+                    .expect("Payload length mismatches header")])?;
             }
             numbers::mac_pdu::mux_ext::LENGTH_16BIT => {
-                w.write(&(self.payload.len() as u16).to_be_bytes())?;
+                w.write(
+                    &(u16::try_from(self.payload.len()).expect("Payload length mismatches header"))
+                        .to_be_bytes(),
+                )?;
             }
             _ => (),
         }
-        w.write(&self.payload)?;
+        w.write(self.payload)?;
 
         Ok(())
     }
