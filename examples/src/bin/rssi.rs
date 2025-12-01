@@ -1,7 +1,7 @@
 #![no_main]
 #![no_std]
 
-use ariel_os::debug::{exit, log::info, ExitCode};
+use ariel_os::debug::{ExitCode, exit, log::info};
 use ariel_os::time::Timer;
 
 #[ariel_os::task(autostart)]

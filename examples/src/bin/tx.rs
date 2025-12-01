@@ -38,5 +38,7 @@ async fn blinky(peripherals: pins::ButtonPeripherals) {
         while button0.is_low() {}
     }
 
-    panic!("If we want to be able to re-flash, we better things at some point to avoid going through unlock again.");
+    panic!(
+        "If we want to be able to re-flash, we better things at some point to avoid going through unlock again."
+    );
 }
