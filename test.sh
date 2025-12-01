@@ -18,3 +18,12 @@ do
     cd ..
 done
 
+# Initially those do build tests only; turning clippy and checks on is a good
+# next step, but only once these stabilize a little.
+
+cd examples
+# FIXME: Going through `run` but not really -- because a plain build fails due to the multiple binaries.
+for EX in rx tx rssi
+do
+    laze build -b nrf9151-dk -D LOG=trace -D CARGO_RUNNER=true run --bin ${EX}
+done

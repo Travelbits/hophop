@@ -15,7 +15,7 @@ jobs:
       - name: Install stable toolchain (rest will be pulled by laze target)
         uses: dtolnay/rust-toolchain@1.91.1
         with:
-          components: rustfmt, clippy
+          components: rustfmt, clippy, llvm-tools
 
       - name: Install laze
         uses: taiki-e/install-action@v2
@@ -23,7 +23,7 @@ jobs:
           tool: laze@0.1
 
       - name: "Installing Ariel OS prerequisites through apt"
-        run: sudo apt-get install ninja-build clang
+        run: sudo apt-get install ninja-build gcc-arm-none-eabi
 
       - name: "Install Ariel OS prerequisites through laze"
         run: |
