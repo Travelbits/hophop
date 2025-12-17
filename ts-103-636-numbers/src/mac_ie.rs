@@ -1,4 +1,8 @@
 //! IE (Information Element) type
+#![allow(
+    clippy::unreadable_literal,
+    reason = "values are use more with copy-pasting and searching than with actual reaidng of the value"
+)]
 
 /// An IE type as uses with MAC Extension field encodings 00/01/10
 ///
@@ -157,6 +161,10 @@ impl IEType5bit {
     ///
     /// Editorial liberty is used to convert remove "IE" and "message" suffixes.
     const fn description(&self) -> Option<&'static str> {
+        #[allow(
+            clippy::match_same_arms,
+            reason = "items are sorted and semantically grouped"
+        )]
         Some(match self.0 {
             0b0_00000 => "Padding",
             0b0_00001 => "Configuration Request",
@@ -208,6 +216,10 @@ impl IEType5bit {
         if len >= 2 || value & !0x1f != 0 {
             return Err(super::ExcessiveBitsSet);
         }
+        #[allow(
+            clippy::cast_possible_truncation,
+            reason = "length was checked, and idiomatic alternatives don't work in const yet"
+        )]
         Ok(Self(((len as u8) << 5) | value))
     }
 
