@@ -17,10 +17,10 @@ jobs:
         with:
           components: rustfmt, clippy, llvm-tools
 
-      - name: Install laze
+      - name: Install laze and other tools
         uses: taiki-e/install-action@v2
         with:
-          tool: laze@0.1
+          tool: laze@0.1,cargo-doc2readme
 
       - name: "Installing Ariel OS prerequisites through apt"
         run: sudo apt-get install ninja-build gcc-arm-none-eabi

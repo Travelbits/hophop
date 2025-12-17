@@ -17,6 +17,7 @@ do
     cargo fmt --check
     cargo test
     cargo test --all-features
+    cargo doc2readme --check
     cd ..
 done
 
