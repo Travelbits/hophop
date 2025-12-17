@@ -206,9 +206,12 @@ impl IEType5bit {
 
     /// Creates an IE label from its components.
     ///
-    /// Errs if length is not in (0, 1) or value exceed the 5 lowest bits.
+    /// This is the inverse function of the tuple created from [`Self::len()`] and
+    /// [`Self::value()`].
     ///
-    /// Inverse function of the tuple created from [`Self::len()`] and [`Self::value()`]
+    /// # Errors
+    ///
+    /// Errs if length is not in (0, 1), or the value exceed the 5 lowest bits.
     pub const fn try_from_len_and_value(
         len: usize,
         value: u8,
@@ -225,9 +228,11 @@ impl IEType5bit {
 
     /// Creates an IE label from its combined length-and-value bits.
     ///
-    /// Errs if input exceeds the 6 lowest bits.
+    /// This is the inverse function of the tuple created from [`Self::composite()`].
     ///
-    /// Inverse function of the tuple created from [`Self::composite()`].
+    /// # Errors
+    ///
+    /// Errs if input exceeds the 6 lowest bits.
     pub const fn try_from_composite(composite: u8) -> Result<Self, super::ExcessiveBitsSet> {
         if composite & !0x3f == 0 {
             Ok(Self(composite))
