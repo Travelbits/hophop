@@ -179,16 +179,19 @@ impl IEType5bit {
         clippy::len_without_is_empty,
         reason = "emptiness is not distinct here"
     )]
+    #[must_use]
     pub const fn len(&self) -> usize {
         (self.0 >> 5) as _
     }
 
     /// Returns the numeric value of the IE (5 bit)
+    #[must_use]
     pub const fn value(&self) -> u8 {
         self.0 & 0x1f
     }
 
     /// Returns the combined length-and-value bits
+    #[must_use]
     pub const fn composite(&self) -> u8 {
         self.0
     }
