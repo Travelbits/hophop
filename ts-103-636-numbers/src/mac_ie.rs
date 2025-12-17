@@ -17,7 +17,7 @@ impl IEType6bit {
     /// Definition of the element from Table 6.3.4-2
     ///
     /// Editorial liberty is used to convert remove "IE" and "message" suffixes.
-    const fn description(&self) -> Option<&'static str> {
+    const fn description(self) -> Option<&'static str> {
         Some(match self.0 {
             // Not using the equivalent constants: that wouldn't make it any mor readable, and if
             // this gets extended frequently, it needs X-macro or code generation driven
@@ -160,7 +160,7 @@ impl IEType5bit {
     /// Definition of the element from Table 6.3.4-3 and -4
     ///
     /// Editorial liberty is used to convert remove "IE" and "message" suffixes.
-    const fn description(&self) -> Option<&'static str> {
+    const fn description(self) -> Option<&'static str> {
         #[allow(
             clippy::match_same_arms,
             reason = "items are sorted and semantically grouped"
@@ -188,19 +188,19 @@ impl IEType5bit {
         reason = "emptiness is not distinct here"
     )]
     #[must_use]
-    pub const fn len(&self) -> usize {
+    pub const fn len(self) -> usize {
         (self.0 >> 5) as _
     }
 
     /// Returns the numeric value of the IE (5 bit)
     #[must_use]
-    pub const fn value(&self) -> u8 {
+    pub const fn value(self) -> u8 {
         self.0 & 0x1f
     }
 
     /// Returns the combined length-and-value bits
     #[must_use]
-    pub const fn composite(&self) -> u8 {
+    pub const fn composite(self) -> u8 {
         self.0
     }
 
