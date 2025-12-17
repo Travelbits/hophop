@@ -9,6 +9,8 @@
 
 set -ex
 
+pipx run reuse lint
+
 for DIR in ts-103-636-numbers ts-103-636-utils
 do
     cd "${DIR}"

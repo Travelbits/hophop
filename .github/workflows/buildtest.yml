@@ -24,8 +24,8 @@ jobs:
         with:
           tool: laze@0.1,cargo-doc2readme
 
-      - name: "Installing Ariel OS prerequisites through apt"
-        run: sudo apt-get install ninja-build gcc-arm-none-eabi
+      - name: "Installing Ariel OS prerequisites through apt (plus pipx for reuse.software)"
+        run: sudo apt-get install ninja-build gcc-arm-none-eabi pipx
 
       - name: "Install Ariel OS prerequisites through laze"
         run: |
