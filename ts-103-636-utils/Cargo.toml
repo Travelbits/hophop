@@ -17,3 +17,6 @@ ts-103-636-numbers = { version = "0.0.1", path = "../ts-103-636-numbers" }
 
 [features]
 defmt = ["dep:defmt", "ts-103-636-numbers/defmt"]
+
+[package.metadata.release]
+sign-tag = true
