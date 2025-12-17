@@ -304,6 +304,27 @@ mod test {
     fn test_convert() {
         IEType6bit::try_from(0xff).unwrap_err();
 
+        assert_eq!(u8::from(IEType6bit::try_from(0x3f).unwrap()), 0x3f);
+
+        assert_eq!(IEType5bit::try_from_composite(0).unwrap().len(), 0);
+        assert_eq!(IEType5bit::try_from_composite(0b1_10001).unwrap().len(), 1);
+        assert_eq!(
+            IEType5bit::try_from_composite(0b1_10001).unwrap().value(),
+            0b10001
+        );
+        assert_eq!(
+            IEType5bit::try_from_len_and_value(1, 0b10001)
+                .unwrap()
+                .composite(),
+            0b1_10001
+        );
+        assert_eq!(
+            IEType5bit::try_from_len_and_value(0, 0b11111)
+                .unwrap()
+                .composite(),
+            0b11111
+        );
+
         IEType5bit::try_from_composite(0xff).unwrap_err();
         IEType5bit::try_from_len_and_value(0, 0x3f).unwrap_err();
         IEType5bit::try_from_len_and_value(2, 0).unwrap_err();

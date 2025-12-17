@@ -148,6 +148,15 @@ mod test {
     }
 
     #[test]
+    fn test_conversion() {
+        assert_eq!(u16::from(CONFIGURATION_DATA_REQUEST), 0x8004);
+        assert_eq!(
+            EndpointMultiplexingAddress::from(0x8005),
+            CONFIGURATION_DATA_RESPONSE
+        );
+    }
+
+    #[test]
     fn test_usability() {
         assert!(matches!(EndpointMultiplexingAddress(0x8002), DATAGRAM_IPV6));
 
