@@ -246,3 +246,32 @@ impl<'a> InformationElement<'a> {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod test {
+    /// A test across both the parser and the formatting.
+    ///
+    /// The output strings are not set in stone, but conveniently serve as a check that the data is
+    /// correct.
+    #[test]
+    fn test_parse_ie_stream() {
+        extern crate alloc;
+        use alloc::{format, string::String, vec::Vec};
+
+        let data = [
+            73, 5, 176, 16, 6, 0, 13, 83, 7, 8, 12, 138, 160, 215, 2, 100, 64, 24, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        ];
+        let expected = [
+            r#"IE IEType6bit { .0: 0x09, description: "Cluster Beacon" }, payload [176, 16, 6, 0, 13]"#,
+            r#"IE IEType6bit { .0: 0x13, description: "Random Access Resource" }, payload [8, 12, 138, 160, 215, 2, 100]"#,
+            r#"IE IEType6bit { .0: 0x00, description: "Padding" }, payload [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]"#,
+        ];
+        let output: Vec<String> = crate::mac_ie::InformationElement::parse_stream(&data)
+            .map(|i| i.unwrap())
+            .map(|item| format!("IE {:?}, payload {:?}", item.ie_number(), item.payload()))
+            .collect();
+
+        assert_eq!(output, expected);
+    }
+}
