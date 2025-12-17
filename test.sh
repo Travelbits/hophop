@@ -15,6 +15,8 @@ do
     cargo clippy -- --deny clippy::all --deny clippy::pedantic
     RUSTDOCFLAGS="-D warnings" cargo doc --all-features
     cargo fmt --check
+    cargo test
+    cargo test --all-features
     cd ..
 done
 
