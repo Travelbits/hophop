@@ -119,14 +119,14 @@ dependencies = [
 
 [[package]]
 name = "ts-103-636-numbers"
-version = "0.0.0"
+version = "0.0.1"
 dependencies = [
  "defmt",
 ]
 
 [[package]]
 name = "ts-103-636-utils"
-version = "0.0.0"
+version = "0.0.1"
 dependencies = [
  "defmt",
  "embedded-io",

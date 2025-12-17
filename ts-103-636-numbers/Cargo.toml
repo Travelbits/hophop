@@ -1,6 +1,6 @@
 [package]
 name = "ts-103-636-numbers"
-version = "0.0.0"
+version = "0.0.1"
 edition = "2024"
 
 description = "Constants from and around ETSI TS 103-636 'DECT-2020 New Radio (NR)'"
