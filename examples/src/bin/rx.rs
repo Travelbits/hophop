@@ -157,7 +157,7 @@ fn log_data(data: &[u8]) {
 
 #[ariel_os::task(autostart)]
 async fn main() {
-    let mut dect = ariel_os::hal::modem::take_modem().await;
+    let mut dect = hophop_examples::dect::DectPhy::init_inside_ariel().await.unwrap();
 
     for _ in 0..300 {
         if let Some(received) = dect

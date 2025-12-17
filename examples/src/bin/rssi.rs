@@ -6,7 +6,7 @@ use ariel_os::time::Timer;
 
 #[ariel_os::task(autostart)]
 async fn main() {
-    let mut dect = ariel_os::hal::modem::take_modem().await;
+    let mut dect = hophop_examples::dect::DectPhy::init_inside_ariel().await.unwrap();
 
     for _ in 0..60 {
         info!("DECT time is {:?}", dect.time_get().await);

@@ -2,7 +2,7 @@ imports:
   - git:
       url: https://github.com/chrysn-pull-requests/ariel-os
       #commit: for-hophop
-      commit: 4416d794b3eeeefc1297862c23a7898f672e46d0
+      commit: 16ec9f5f1420deda543e70f1e293ebe7414f7e4c
     dldir: ariel-os
 
 apps:
