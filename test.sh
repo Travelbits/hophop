@@ -7,7 +7,7 @@
 
 set -ex
 
-for DIR in ts-103-636-utils ts-103-636-utils
+for DIR in ts-103-636-numbers ts-103-636-utils
 do
     cd "${DIR}"
     RUSTFLAGS="-D warnings" cargo check
