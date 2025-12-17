@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright Christian Amsüss <chrysn@fsfe.org>, Silano Systems
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Allocations in the [DECT-2020 NR Endpoint Multiplexing Address Allocation] mapping.
 //!
 //! [DECT-2020 NR Endpoint Multiplexing Address Allocation]: https://portal.etsi.org/PNNS/Protocol-Specification-Allocation/DECT-2020-NR-Endpoint-Multiplexing-Addresses
@@ -145,6 +147,15 @@ mod test {
     #[test]
     fn test_range() {
         assert!(RANGE_PUBLIC_SPEC.contains(&DATAGRAM_6LO));
+    }
+
+    #[test]
+    fn test_conversion() {
+        assert_eq!(u16::from(CONFIGURATION_DATA_REQUEST), 0x8004);
+        assert_eq!(
+            EndpointMultiplexingAddress::from(0x8005),
+            CONFIGURATION_DATA_RESPONSE
+        );
     }
 
     #[test]

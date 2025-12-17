@@ -1,6 +1,8 @@
+# SPDX-FileCopyrightText: Copyright Christian Amsüss <chrysn@fsfe.org>, Silano Systems
+# SPDX-License-Identifier: MIT OR Apache-2.0
 [package]
 name = "ts-103-636-utils"
-version = "0.0.0"
+version = "0.0.1"
 edition = "2024"
 
 description = "Protocol decoding and encoding utilities for ETSI TS 103-636 'DECT-2020 New Radio (NR)'"
@@ -13,7 +15,10 @@ license = "MIT OR Apache-2.0"
 [dependencies]
 defmt = { version = "1.0.1", optional = true }
 embedded-io = "0.7.1"
-ts-103-636-numbers = { version = "0.0.0", path = "../ts-103-636-numbers" }
+ts-103-636-numbers = { version = "0.0.1", path = "../ts-103-636-numbers" }
 
 [features]
 defmt = ["dep:defmt", "ts-103-636-numbers/defmt"]
+
+[package.metadata.release]
+sign-tag = true

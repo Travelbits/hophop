@@ -1,4 +1,6 @@
 #!/bin/sh
+# SPDX-FileCopyrightText: Copyright Christian Amsüss <chrysn@fsfe.org>, Silano Systems
+# SPDX-License-Identifier: MIT OR Apache-2.0
 
 # Kept in a shell script to be easily portable to no-GitHub CI systems.
 #
@@ -7,7 +9,9 @@
 
 set -ex
 
-for DIR in ts-103-636-utils ts-103-636-utils
+pipx run reuse lint
+
+for DIR in ts-103-636-numbers ts-103-636-utils
 do
     cd "${DIR}"
     RUSTFLAGS="-D warnings" cargo check
@@ -15,6 +19,9 @@ do
     cargo clippy -- --deny clippy::all --deny clippy::pedantic
     RUSTDOCFLAGS="-D warnings" cargo doc --all-features
     cargo fmt --check
+    cargo test
+    cargo test --all-features
+    cargo doc2readme --check
     cd ..
 done
 

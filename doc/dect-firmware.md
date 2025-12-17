@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: Copyright Christian Amsüss <chrysn@fsfe.org>, Silano Systems
+SPDX-License-Identifier: MIT OR Apache-2.0
+-->
 # Steps to get the DECT firmware onto the nRF9151 network core
 
 For any of the code here to work, the nRF9151's network core
