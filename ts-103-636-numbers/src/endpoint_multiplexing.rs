@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright Christian Amsüss <chrysn@fsfe.org>, Silano Systems
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Allocations in the [DECT-2020 NR Endpoint Multiplexing Address Allocation] mapping.
 //!
 //! [DECT-2020 NR Endpoint Multiplexing Address Allocation]: https://portal.etsi.org/PNNS/Protocol-Specification-Allocation/DECT-2020-NR-Endpoint-Multiplexing-Addresses

@@ -1,5 +1,10 @@
 # ts-103-636-numbers ![License: MIT OR Apache-2.0](https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue) [![ts-103-636-numbers on crates.io](https://img.shields.io/crates/v/ts-103-636-numbers)](https://crates.io/crates/ts-103-636-numbers) [![ts-103-636-numbers on docs.rs](https://docs.rs/ts-103-636-numbers/badge.svg)](https://docs.rs/ts-103-636-numbers) [![Source Code Repository](https://img.shields.io/badge/Code-On%20GitHub-blue?logo=GitHub)](https://github.com/ariel-os/hophop/)
 
+<!--
+SPDX-FileCopyrightText: Copyright Christian Amsüss <chrysn@fsfe.org>, Silano Systems
+SPDX-License-Identifier: MIT OR Apache-2.0
+-->
+
 This crate contains numeric constants for ETSI TS 103-636 “DECT-2020 New Radio (NR)”.
 
 This encompasses bitfield values from the specification itself as well as entries in the

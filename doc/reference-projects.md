@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: Copyright Christian Amsüss <chrysn@fsfe.org>, Silano Systems
+SPDX-License-Identifier: MIT OR Apache-2.0
+-->
 # Available baseline tools
 
 As a baseline for any trouble related to getting the PHY working, see those two projects from <https://github.com/nrfconnect/sdk-nrf>:

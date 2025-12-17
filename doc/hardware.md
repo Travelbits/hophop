@@ -1,3 +1,7 @@
+<!--
+SPDX-FileCopyrightText: Copyright Christian Amsüss <chrysn@fsfe.org>, Silano Systems
+SPDX-License-Identifier: MIT OR Apache-2.0
+-->
 # Hardware usable with hophop
 
 Currently, the project aims to support the [nRF9151](https://www.nordicsemi.com/Products/nRF9151) controller,
