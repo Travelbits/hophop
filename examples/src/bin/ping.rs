@@ -6,7 +6,7 @@
 #![no_std]
 #![no_main]
 
-use ariel_os::debug::log::{Hex, info, warn};
+use ariel_os::debug::log::{info, warn};
 use ariel_os_boards::pins;
 
 use ts_103_636_numbers as numbers;
@@ -14,7 +14,17 @@ use ts_103_636_utils as utils;
 
 #[ariel_os::task(autostart, peripherals)]
 async fn main(peripherals: pins::ButtonPeripherals) {
-    let mut dect = hophop_examples::dect::DectPhy::init_inside_ariel().await.unwrap();
+    let mut dect = hophop_examples::dect::DectPhy::init_inside_ariel()
+        .await
+        .unwrap();
+
+    let transmitter_id = &ariel_os::identity::interface_eui48(0).unwrap();
+    let transmitter_id_short = u16::from_be_bytes(transmitter_id.0[..2].try_into().unwrap());
+    let transmitter_id_long = u32::from_be_bytes(transmitter_id.0[2..].try_into().unwrap());
+    info!(
+        "Chosen transmitter ID: short {:?} long {:?}",
+        transmitter_id_short, transmitter_id_long,
+    );
 
     let button0 = ariel_os::gpio::Input::new(peripherals.button0, ariel_os::gpio::Pull::Up);
 
@@ -32,28 +42,26 @@ async fn main(peripherals: pins::ButtonPeripherals) {
                 let pcc = received.pcc();
                 let pdc = received.pdc();
                 if let (Ok(start), Ok(pcc), Ok(pdc)) = (start, pcc, pdc) {
-                    info!("Received at {}: {:?}", start, pcc);
-                    if let Ok(header) = utils::mac_pdu::Header::parse(pdc) {
-                        info!("* Header {:?}", header.common);
+                    let header = utils::mac_pdu::Header::parse(pdc);
+                    info!("Received at {}: {:?}. PDC: {:?}", start, pcc, header);
+                    if let Ok(header) = utils::mac_pdu::Header::parse(pdc)
+                        && let utils::mac_pdu::MacCommonHeader::Beacon(ref beacon) = header.common
+                    {
                         for ie in header.tail_items() {
-                            if let Ok(ie) = ie {
-                                if ie.ie_number() == numbers::mac_ie::ie6bit::USER_PLANE_DATA_FLOW_1
-                                    && ie.payload().len() == 9
-                                    && ie.payload()[0] == 0x10
-                                {
-                                    info!(
-                                        "* Sender time stamp: {}",
-                                        u64::from_be_bytes(ie.payload()[1..].try_into().unwrap())
-                                    );
-                                } else {
-                                    info!("* IE {:?}", ie);
-                                }
-                            } else {
-                                warn!("* Unparsable IE");
+                            if let Ok(ie) = ie
+                                && ie.ie_number() == numbers::mac_ie::ie6bit::USER_PLANE_DATA_FLOW_1
+                                && ie.payload().len() == 9
+                                && ie.payload()[0] == 0x10
+                            {
+                                info!(
+                                    "Sync received. Local ID {} time {}. Remote ID {} time {}.",
+                                    transmitter_id_long,
+                                    start,
+                                    beacon.transmitter_address(),
+                                    u64::from_be_bytes(ie.payload()[1..].try_into().unwrap())
+                                );
                             }
                         }
-                    } else {
-                        warn!("Received unparsable data {:?}", pdc);
                     }
                 } else {
                     warn!(
@@ -65,23 +73,28 @@ async fn main(peripherals: pins::ButtonPeripherals) {
         }
 
         if button0.is_low() {
-            let pcc = &[
+            #[rustfmt::skip]
+            let mut pcc = [
                 // header format 000, 2 subslots
-                0x02, // short networkID
-                0x41, // Transmitter identity
+                0x02,
+                // short networkID
+                0x41,
+                // Transmitter identity, later overwritten
                 0x12, 0x34,
                 // Transmit power and DF MCS as in what we've seen from dect_shell beacons
                 0x70,
             ];
+            // Overwrite short transmitter ID
+            pcc[2..4].copy_from_slice(&transmitter_id_short.to_be_bytes());
             let mut pdc_buf = heapless::Vec::<u8, 256>::new();
+            // version 0, no security; beacon.
+            pdc_buf.push(0x01).unwrap();
+            // beacon details:
+            // full network ID
+            pdc_buf.extend_from_slice(&[0x41, 0x41, 0x41]).unwrap();
+            // full sender ID
             pdc_buf
-                .extend_from_slice(&[
-                    // version 0, no security; beacon.
-                    0x01, // beacon details:
-                    // full network ID
-                    0x41, 0x41, 0x41, // full sender ID
-                    0xfe, 0xdc, 0x12, 0x34,
-                ])
+                .extend_from_slice(&transmitter_id_long.to_be_bytes())
                 .unwrap();
 
             // Clock starts ticking for building the message…
@@ -125,7 +138,7 @@ async fn main(peripherals: pins::ButtonPeripherals) {
                 .unwrap();
             }
 
-            dect.tx(transmit_time, 1665, 0x12345678, pcc, &pdc_buf)
+            dect.tx(transmit_time, 1665, 0x12345678, &pcc, &pdc_buf)
                 .await
                 .unwrap();
 
