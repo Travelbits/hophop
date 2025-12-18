@@ -47,7 +47,7 @@ impl defmt::Format for InformationElement<'_> {
             self.head,
             self.ie_number(),
             self.payload,
-            );
+        );
     }
 }
 

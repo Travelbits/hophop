@@ -42,6 +42,14 @@ pub struct Header<'buf> {
 }
 
 impl<'buf> Header<'buf> {
+    /// Parses a buffer as a MAC PDU, with a header indicating the common header type, a common
+    /// header, and a tail of IEs.
+    ///
+    /// # Errors
+    ///
+    /// This errs if the MAC version is not the one specified and understood, or on various length
+    /// errors.
+    #[expect(clippy::missing_panics_doc, reason = "panics are unreachable")]
     pub fn parse(mut buffer: &'buf [u8]) -> Result<Self, ParsingError> {
         let head = *buffer.split_off_first().ok_or(ParsingError)?;
         if head & 0xc0 != 0 {
@@ -90,8 +98,11 @@ impl<'buf> Header<'buf> {
         })
     }
 
-    /// Convenience accessor for [`crate::mac_ie::InformationElement::parse_stream(Self::tail)`].
-    pub fn tail_items(&self) -> impl Iterator<Item = Result<crate::mac_ie::InformationElement<'_>, ParsingError>> {
+    /// Convenience accessor for
+    /// [`InformationElement::parse_stream(Self::tail)`][crate::mac_ie::InformationElement::parse_stream].
+    pub fn tail_items(
+        &self,
+    ) -> impl Iterator<Item = Result<crate::mac_ie::InformationElement<'_>, ParsingError>> {
         crate::mac_ie::InformationElement::parse_stream(self.tail)
     }
 }
