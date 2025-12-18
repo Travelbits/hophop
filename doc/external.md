@@ -50,3 +50,10 @@ with selective relevant highlights
     Much of this is covered in the PHY.
 
     Relevant: eg. in 4.3.2.3 effectively says "use only odd absolute channel numbers for 1.728MHz wide operation", also power limits.
+
+* ETSI TS 104 047-{1,2}: Conformance Test Specification
+
+    At the current stage, those are mainly useful for reference where specifications are unclear.
+
+    * [-1](https://www.etsi.org/deliver/etsi_ts/104000_104099/10404701/01.01.01_60/ts_10404701v010101p.pdf): Radio Transmission and Reception
+    * [-2](https://www.etsi.org/deliver/etsi_ts/104000_104099/10404702/01.01.01_60/ts_10404702v010101p.pdf): Radio Protocols
