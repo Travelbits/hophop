@@ -53,9 +53,21 @@ impl defmt::Format for InformationElement<'_> {
 ///
 /// It might make sense to shape `ts_103_636_numbers` more in that direction; then it'll be a plain
 /// enum and just have instance methods to turn it into a header with any given payload length.
+#[derive(PartialEq)]
 pub enum AnyIeType {
     Type6bit(numbers::mac_ie::IEType6bit),
     Type5bit(numbers::mac_ie::IEType5bit),
+}
+
+// Convenience while we don't use a unified enum (for `.ie_number() == constant`)
+impl PartialEq<numbers::mac_ie::IEType6bit> for AnyIeType {
+    fn eq(&self, other: &numbers::mac_ie::IEType6bit) -> bool {
+        if let AnyIeType::Type6bit(slef) = self {
+            slef == other
+        } else {
+            false
+        }
+    }
 }
 
 impl core::fmt::Debug for AnyIeType {
