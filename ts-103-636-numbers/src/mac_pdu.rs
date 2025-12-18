@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright Christian Amsüss <chrysn@fsfe.org>, Silano Systems
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Various bitfield constants of Section 6.3 of ETSI TS 103 636-4 V2.1.1
 
 /// Version field of the MAC Header type

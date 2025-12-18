@@ -1,3 +1,7 @@
+//! <!--
+//! SPDX-FileCopyrightText: Copyright Christian Amsüss <chrysn@fsfe.org>, Silano Systems
+//! SPDX-License-Identifier: MIT OR Apache-2.0
+//! -->
 //! This crate contains protocol utilities ETSI TS 103-636 "DECT-2020 New Radio (NR)".
 #![no_std]
 

@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright Christian Amsüss <chrysn@fsfe.org>, Silano Systems
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Minimal receive example
 //!
 //! While this is running, peers executing the nRF dect_shell example and running `dect ping -c`

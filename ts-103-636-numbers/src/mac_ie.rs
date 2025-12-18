@@ -1,4 +1,10 @@
+// SPDX-FileCopyrightText: Copyright Christian Amsüss <chrysn@fsfe.org>, Silano Systems
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! IE (Information Element) type
+#![allow(
+    clippy::unreadable_literal,
+    reason = "values are use more with copy-pasting and searching than with actual reaidng of the value"
+)]
 
 /// An IE type as uses with MAC Extension field encodings 00/01/10
 ///
@@ -13,7 +19,7 @@ impl IEType6bit {
     /// Definition of the element from Table 6.3.4-2
     ///
     /// Editorial liberty is used to convert remove "IE" and "message" suffixes.
-    const fn description(&self) -> Option<&'static str> {
+    const fn description(self) -> Option<&'static str> {
         Some(match self.0 {
             // Not using the equivalent constants: that wouldn't make it any mor readable, and if
             // this gets extended frequently, it needs X-macro or code generation driven
@@ -156,7 +162,11 @@ impl IEType5bit {
     /// Definition of the element from Table 6.3.4-3 and -4
     ///
     /// Editorial liberty is used to convert remove "IE" and "message" suffixes.
-    const fn description(&self) -> Option<&'static str> {
+    const fn description(self) -> Option<&'static str> {
+        #[allow(
+            clippy::match_same_arms,
+            reason = "items are sorted and semantically grouped"
+        )]
         Some(match self.0 {
             0b0_00000 => "Padding",
             0b0_00001 => "Configuration Request",
@@ -179,25 +189,31 @@ impl IEType5bit {
         clippy::len_without_is_empty,
         reason = "emptiness is not distinct here"
     )]
-    pub const fn len(&self) -> usize {
+    #[must_use]
+    pub const fn len(self) -> usize {
         (self.0 >> 5) as _
     }
 
     /// Returns the numeric value of the IE (5 bit)
-    pub const fn value(&self) -> u8 {
+    #[must_use]
+    pub const fn value(self) -> u8 {
         self.0 & 0x1f
     }
 
     /// Returns the combined length-and-value bits
-    pub const fn composite(&self) -> u8 {
+    #[must_use]
+    pub const fn composite(self) -> u8 {
         self.0
     }
 
     /// Creates an IE label from its components.
     ///
-    /// Errs if length is not in (0, 1) or value exceed the 5 lowest bits.
+    /// This is the inverse function of the tuple created from [`Self::len()`] and
+    /// [`Self::value()`].
     ///
-    /// Inverse function of the tuple created from [`Self::len()`] and [`Self::value()`]
+    /// # Errors
+    ///
+    /// Errs if length is not in (0, 1), or the value exceed the 5 lowest bits.
     pub const fn try_from_len_and_value(
         len: usize,
         value: u8,
@@ -205,14 +221,20 @@ impl IEType5bit {
         if len >= 2 || value & !0x1f != 0 {
             return Err(super::ExcessiveBitsSet);
         }
+        #[allow(
+            clippy::cast_possible_truncation,
+            reason = "length was checked, and idiomatic alternatives don't work in const yet"
+        )]
         Ok(Self(((len as u8) << 5) | value))
     }
 
     /// Creates an IE label from its combined length-and-value bits.
     ///
-    /// Errs if input exceeds the 6 lowest bits.
+    /// This is the inverse function of the tuple created from [`Self::composite()`].
     ///
-    /// Inverse function of the tuple created from [`Self::composite()`].
+    /// # Errors
+    ///
+    /// Errs if input exceeds the 6 lowest bits.
     pub const fn try_from_composite(composite: u8) -> Result<Self, super::ExcessiveBitsSet> {
         if composite & !0x3f == 0 {
             Ok(Self(composite))
@@ -283,6 +305,27 @@ mod test {
     #[test]
     fn test_convert() {
         IEType6bit::try_from(0xff).unwrap_err();
+
+        assert_eq!(u8::from(IEType6bit::try_from(0x3f).unwrap()), 0x3f);
+
+        assert_eq!(IEType5bit::try_from_composite(0).unwrap().len(), 0);
+        assert_eq!(IEType5bit::try_from_composite(0b1_10001).unwrap().len(), 1);
+        assert_eq!(
+            IEType5bit::try_from_composite(0b1_10001).unwrap().value(),
+            0b10001
+        );
+        assert_eq!(
+            IEType5bit::try_from_len_and_value(1, 0b10001)
+                .unwrap()
+                .composite(),
+            0b1_10001
+        );
+        assert_eq!(
+            IEType5bit::try_from_len_and_value(0, 0b11111)
+                .unwrap()
+                .composite(),
+            0b11111
+        );
 
         IEType5bit::try_from_composite(0xff).unwrap_err();
         IEType5bit::try_from_len_and_value(0, 0x3f).unwrap_err();
