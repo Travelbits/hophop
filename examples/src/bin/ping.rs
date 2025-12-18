@@ -65,21 +65,27 @@ async fn main(peripherals: pins::ButtonPeripherals) {
         }
 
         if button0.is_low() {
+            #[rustfmt::skip]
             let pcc = &[
                 // header format 000, 2 subslots
-                0x02, // short networkID
-                0x41, // Transmitter identity
+                0x02,
+                // short networkID
+                0x41,
+                // Transmitter identity
                 0x12, 0x34,
                 // Transmit power and DF MCS as in what we've seen from dect_shell beacons
                 0x70,
             ];
             let mut pdc_buf = heapless::Vec::<u8, 256>::new();
+            #[rustfmt::skip]
             pdc_buf
                 .extend_from_slice(&[
                     // version 0, no security; beacon.
-                    0x01, // beacon details:
+                    0x01,
+                    // beacon details:
                     // full network ID
-                    0x41, 0x41, 0x41, // full sender ID
+                    0x41, 0x41, 0x41,
+                    // full sender ID
                     0xfe, 0xdc, 0x12, 0x34,
                 ])
                 .unwrap();
