@@ -13,18 +13,21 @@ pub struct MacHeaderType(pub u8);
 
 impl MacHeaderType {
     /// The 2-bit Version field.
+    #[must_use]
     pub fn version(&self) -> u8 {
-       self.0 >> 6
+        self.0 >> 6
     }
 
     /// The 2-bit MAC Security field.
+    #[must_use]
     pub fn mac_security(&self) -> u8 {
-       (self.0 >> 4) & 0x03
+        (self.0 >> 4) & 0x03
     }
 
     /// The 4-bit MAC Header Type field.
+    #[must_use]
     pub fn mac_header_type(&self) -> u8 {
-       self.0 & 0x0f
+        self.0 & 0x0f
     }
 }
 
@@ -32,15 +35,17 @@ impl MacHeaderType {
 pub struct DataMacPdu<'buf>(pub &'buf [u8; 2]);
 
 /// The DATA MAC PDU header as defined in Section 6.3.3.1 of ETSI TS 103 636-4 V2.1.1.
-impl<'buf> DataMacPdu<'buf> {
+impl DataMacPdu<'_> {
     /// The single reset bit.
+    #[must_use]
     pub fn reset(&self) -> bool {
         ((self.0[0] >> 4) & 1) != 0
     }
 
     /// The 12 bit sequence number.
+    #[must_use]
     pub fn sequence_number(&self) -> u16 {
-        (self.0[0] as u16 & 0x0f) << 8 | (self.0[1] as u16)
+        (u16::from(self.0[0]) & 0x0f) << 8 | u16::from(self.0[1])
     }
 }
 
@@ -60,12 +65,14 @@ impl<'buf> defmt::Format for DataMacPdu<'buf> {
 #[derive(Debug)]
 pub struct Beacon<'buf>(pub &'buf [u8; 7]);
 
-impl<'buf> Beacon<'buf> {
+impl Beacon<'_> {
     /// The 24 bit network ID.
+    #[must_use]
     pub fn network_id(&self) -> u32 {
         u32::from_be_bytes([0, self.0[0], self.0[1], self.0[2]])
     }
 
+    #[must_use]
     pub fn transmitter_address(&self) -> u32 {
         u32::from_be_bytes(self.0[3..7].try_into().expect("sizes fit"))
     }
@@ -87,8 +94,9 @@ impl<'buf> defmt::Format for Beacon<'buf> {
 #[derive(Debug)]
 pub struct Unicast<'buf>(pub &'buf [u8; 10]);
 
-impl<'buf> Unicast<'buf> {
+impl Unicast<'_> {
     /// The single reset bit.
+    #[must_use]
     pub fn reset(&self) -> bool {
         ((self.0[0] >> 4) & 1) != 0
     }
@@ -97,16 +105,19 @@ impl<'buf> Unicast<'buf> {
     ///
     /// Note that Figure 6.3.3.3-1 of ETSI TS 103 636-4 V2.1.1 gives separate names to this field,
     /// but the prose speaks of a 12-bit sequence number.
+    #[must_use]
     pub fn sequence_number(&self) -> u16 {
-        (self.0[0] as u16 & 0x0f) << 8 | (self.0[1] as u16)
+        (u16::from(self.0[0]) & 0x0f) << 8 | u16::from(self.0[1])
     }
 
     /// The 32 bit receiver address.
+    #[must_use]
     pub fn receiver_address(&self) -> u32 {
         u32::from_be_bytes(self.0[2..6].try_into().expect("sizes fit"))
     }
 
     /// The 32 bit transmitter address.
+    #[must_use]
     pub fn transmitter_address(&self) -> u32 {
         u32::from_be_bytes(self.0[6..10].try_into().expect("sizes fit"))
     }
@@ -130,18 +141,21 @@ impl<'buf> defmt::Format for Unicast<'buf> {
 #[derive(Debug)]
 pub struct RdBroadcast<'buf>(pub &'buf [u8; 6]);
 
-impl<'buf> RdBroadcast<'buf> {
+impl RdBroadcast<'_> {
     /// The single reset bit.
+    #[must_use]
     pub fn reset(&self) -> bool {
         ((self.0[0] >> 4) & 1) != 0
     }
 
     /// The 12 bit sequence number.
+    #[must_use]
     pub fn sequence_number(&self) -> u16 {
-        (self.0[0] as u16 & 0x0f) << 8 | (self.0[1] as u16)
+        (u16::from(self.0[0]) & 0x0f) << 8 | u16::from(self.0[1])
     }
 
     /// The 32 bit transmitter address.
+    #[must_use]
     pub fn transmitter_address(&self) -> u32 {
         u32::from_be_bytes(self.0[2..6].try_into().expect("sizes fit"))
     }
@@ -251,7 +265,7 @@ impl<'buf> defmt::Format for Header<'buf> {
             fmt,
             "Header {{ .head.mac security: {=u8}, .common: ",
             self.head.mac_security(),
-            );
+        );
         match &self.common {
             MacCommonHeader::DataMacPdu(inner) => inner.format(fmt),
             MacCommonHeader::Beacon(inner) => inner.format(fmt),
