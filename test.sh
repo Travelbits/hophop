@@ -30,7 +30,7 @@ done
 
 cd examples
 # FIXME: Going through `run` but not really -- because a plain build fails due to the multiple binaries.
-for EX in rx tx rssi
+for EX in rx tx rssi ping
 do
     laze build -b nrf9151-dk -D LOG=trace -D CARGO_RUNNER=true run --bin ${EX}
 done

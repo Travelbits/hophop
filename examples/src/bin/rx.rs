@@ -7,7 +7,7 @@
 #![no_std]
 #![no_main]
 
-use ariel_os::debug::log::{info, warn, Hex};
+use ariel_os::debug::log::{Hex, info, warn};
 
 use ts_103_636_numbers as numbers;
 use ts_103_636_utils as utils;
@@ -92,7 +92,12 @@ fn log_data(data: &[u8]) {
             let seqno = (data[1] as u16 & 0x0f) << 8 | (data[2] as u16);
 
             let transmitter = &data[4..8];
-            info!("DATA MAC PDU details: reset {}, seqno {}, from {}", reset, seqno, Hex(&transmitter));
+            info!(
+                "DATA MAC PDU details: reset {}, seqno {}, from {}",
+                reset,
+                seqno,
+                Hex(&transmitter)
+            );
             3
         }
         numbers::mac_pdu::header_type::BEACON => {
@@ -100,7 +105,8 @@ fn log_data(data: &[u8]) {
             let transmitter = &data[4..8];
             info!(
                 "Beacon details: Network {}, transmitter {}",
-                Hex(&long_nid), Hex(&transmitter),
+                Hex(&long_nid),
+                Hex(&transmitter),
             );
             8
         }
@@ -112,7 +118,11 @@ fn log_data(data: &[u8]) {
             let transmitter = &data[7..11];
             info!(
                 "Unicast details: reset {}, mac_sequence {}, seqno {}, to {} from {}",
-                reset, mac_sequence, seqno, Hex(&receiver), Hex(&transmitter),
+                reset,
+                mac_sequence,
+                seqno,
+                Hex(&receiver),
+                Hex(&transmitter),
             );
             11
         }
@@ -122,7 +132,9 @@ fn log_data(data: &[u8]) {
             let transmitter = &data[3..7];
             info!(
                 "RD Broadcast details: reset {}, seqno {}, from {}",
-                reset, seqno, Hex(&transmitter),
+                reset,
+                seqno,
+                Hex(&transmitter),
             );
             7
         }
@@ -147,7 +159,7 @@ fn log_data(data: &[u8]) {
 
 #[ariel_os::task(autostart)]
 async fn main() {
-    let mut dect = ariel_os::hal::modem::take_modem().await;
+    let mut dect = hophop_examples::dect::DectPhy::init_inside_ariel().await.unwrap();
 
     for _ in 0..300 {
         if let Some(received) = dect
@@ -171,5 +183,7 @@ async fn main() {
         }
     }
 
-    panic!("If we want to be able to re-flash, we better things at some point to avoid going through unlock again.");
+    panic!(
+        "If we want to be able to re-flash, we better things at some point to avoid going through unlock again."
+    );
 }
