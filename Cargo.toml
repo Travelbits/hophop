@@ -1,0 +1,23 @@
+# SPDX-FileCopyrightText: Copyright Christian Amsüss <chrysn@fsfe.org>, Silano Systems
+# SPDX-License-Identifier: MIT OR Apache-2.0
+
+[workspace]
+resolver = "3"
+members = [
+    "hophop",
+    "ts-103-636-numbers",
+    "ts-103-636-utils",
+]
+
+# Not part of the workspace because that doesn't work well with Ariel OS setups (?)
+exclude = ["examples"]
+
+[workspace.package]
+license = "MIT OR Apache-2.0"
+edition = "2024"
+repository = "https://github.com/ariel-os/hophop/"
+keywords = ["dect", "nr+"]
+categories = ["no-std::no-alloc"]
+
+[workspace.metadata.release]
+sign-tag = true
