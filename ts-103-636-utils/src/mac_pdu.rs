@@ -106,3 +106,21 @@ impl<'buf> Header<'buf> {
         crate::mac_ie::InformationElement::parse_stream(self.tail)
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_parse_header() {
+        let beacon = &[
+            1, 18, 52, 86, 0, 0, 0, 38, 73, 5, 176, 16, 6, 0, 13, 83, 7, 8, 12, 138, 160, 215, 2,
+            100, 64, 24, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        ];
+
+        let beacon = Header::parse(&beacon[..]).unwrap();
+        assert!(matches!(beacon.common, MacCommonHeader::Beacon(Beacon([18, .., 38]))));
+        // Detailed parsing of that very string is tested in mac_ie.rs
+        assert!(matches!(beacon.tail, [73, 5, .., 0]));
+    }
+}
