@@ -36,6 +36,19 @@ impl core::fmt::Debug for InformationElement<'_> {
     }
 }
 
+#[cfg(feature = "defmt")]
+impl defmt::Format for InformationElement<'_> {
+    fn format(&self, fmt: defmt::Formatter) {
+        defmt::write!(
+            fmt,
+            "InformationElement {{ head: {}, head ie: {}, payload: {} }}",
+            self.head,
+            self.ie_number(),
+            self.payload,
+            );
+    }
+}
+
 /// Unifying type over different IE registries
 ///
 /// It might make sense to shape `ts_103_636_numbers` more in that direction; then it'll be a plain
