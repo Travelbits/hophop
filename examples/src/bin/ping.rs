@@ -14,7 +14,9 @@ use ts_103_636_utils as utils;
 
 #[ariel_os::task(autostart, peripherals)]
 async fn main(peripherals: pins::ButtonPeripherals) {
-    let mut dect = hophop_examples::dect::DectPhy::init_inside_ariel().await.unwrap();
+    let mut dect = hophop_examples::dect::DectPhy::init_inside_ariel()
+        .await
+        .unwrap();
 
     let button0 = ariel_os::gpio::Input::new(peripherals.button0, ariel_os::gpio::Pull::Up);
 
