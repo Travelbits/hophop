@@ -1,3 +1,5 @@
+// SPDX-FileCopyrightText: Copyright Christian Amsüss <chrysn@fsfe.org>, Silano Systems
+// SPDX-License-Identifier: MIT OR Apache-2.0
 //! Ping/pong example
 //!
 //! See <https://github.com/ariel-os/hophop/issues/12> for initial documentation.
