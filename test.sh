@@ -11,16 +11,17 @@ set -ex
 
 pipx run reuse lint
 
+RUSTFLAGS="-D warnings" cargo check
+RUSTFLAGS="-D warnings" cargo check --all-features
+cargo clippy -- --deny clippy::all --deny clippy::pedantic
+RUSTDOCFLAGS="-D warnings" cargo doc --all-features
+cargo fmt --check
+cargo test
+cargo test --all-features
+
 for DIR in ts-103-636-numbers ts-103-636-utils
 do
     cd "${DIR}"
-    RUSTFLAGS="-D warnings" cargo check
-    RUSTFLAGS="-D warnings" cargo check --all-features
-    cargo clippy -- --deny clippy::all --deny clippy::pedantic
-    RUSTDOCFLAGS="-D warnings" cargo doc --all-features
-    cargo fmt --check
-    cargo test
-    cargo test --all-features
     cargo doc2readme --check
     cd ..
 done

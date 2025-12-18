@@ -2,18 +2,14 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 [package]
 name = "hophop"
-version = "0.0.1"
-edition = "2024"
-
-readme = "../README.md"
 description = "Exploring DECT-2020 NR+"
+version = "0.0.1"
+readme = "../README.md"
 
-license = "MIT OR Apache-2.0"
-repository = "https://github.com/ariel-os/hophop"
-keywords = ["dect", "dect2020", "iot"]
-categories = ["no-std::no-alloc"]
+categories.workspace = true
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [dependencies]
-
-[workspace.metadata.release]
-sign-tag = true

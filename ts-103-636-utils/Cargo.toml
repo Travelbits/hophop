@@ -2,15 +2,15 @@
 # SPDX-License-Identifier: MIT OR Apache-2.0
 [package]
 name = "ts-103-636-utils"
-version = "0.0.1"
-edition = "2024"
-
 description = "Protocol decoding and encoding utilities for ETSI TS 103-636 'DECT-2020 New Radio (NR)'"
 documentation = "https://docs.rs/ts-103-636-utils/"
-repository = "https://github.com/ariel-os/hophop/"
-keywords = ["dect", "nr+"]
-categories = ["no-std::no-alloc"]
-license = "MIT OR Apache-2.0"
+version = "0.0.1"
+
+categories.workspace = true
+edition.workspace = true
+keywords.workspace = true
+license.workspace = true
+repository.workspace = true
 
 [dependencies]
 defmt = { version = "1.0.1", optional = true }
@@ -19,6 +19,3 @@ ts-103-636-numbers = { version = "0.0.1", path = "../ts-103-636-numbers" }
 
 [features]
 defmt = ["dep:defmt", "ts-103-636-numbers/defmt"]
-
-[package.metadata.release]
-sign-tag = true
