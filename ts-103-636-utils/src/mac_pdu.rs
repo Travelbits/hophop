@@ -74,6 +74,7 @@ impl Beacon<'_> {
 
     #[must_use]
     pub fn transmitter_address(&self) -> u32 {
+        #[allow(clippy::missing_panics_doc, reason = "panic is unreachable")]
         u32::from_be_bytes(self.0[3..7].try_into().expect("sizes fit"))
     }
 }
@@ -113,12 +114,14 @@ impl Unicast<'_> {
     /// The 32 bit receiver address.
     #[must_use]
     pub fn receiver_address(&self) -> u32 {
+        #[allow(clippy::missing_panics_doc, reason = "panic is unreachable")]
         u32::from_be_bytes(self.0[2..6].try_into().expect("sizes fit"))
     }
 
     /// The 32 bit transmitter address.
     #[must_use]
     pub fn transmitter_address(&self) -> u32 {
+        #[allow(clippy::missing_panics_doc, reason = "panic is unreachable")]
         u32::from_be_bytes(self.0[6..10].try_into().expect("sizes fit"))
     }
 }
@@ -157,6 +160,7 @@ impl RdBroadcast<'_> {
     /// The 32 bit transmitter address.
     #[must_use]
     pub fn transmitter_address(&self) -> u32 {
+        #[allow(clippy::missing_panics_doc, reason = "panic is unreachable")]
         u32::from_be_bytes(self.0[2..6].try_into().expect("sizes fit"))
     }
 }
