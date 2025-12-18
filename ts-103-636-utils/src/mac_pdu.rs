@@ -8,20 +8,20 @@ use ts_103_636_numbers as numbers;
 
 #[derive(Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub struct MacHeaderType(u8);
+pub struct MacHeaderType(pub u8);
 
 #[derive(Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub struct DataMacPdu<'buf>(&'buf [u8; 2]);
+pub struct DataMacPdu<'buf>(pub &'buf [u8; 2]);
 #[derive(Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub struct Beacon<'buf>(&'buf [u8; 7]);
+pub struct Beacon<'buf>(pub &'buf [u8; 7]);
 #[derive(Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub struct Unicast<'buf>(&'buf [u8; 10]);
+pub struct Unicast<'buf>(pub &'buf [u8; 10]);
 #[derive(Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub struct RdBroadcast<'buf>(&'buf [u8; 6]);
+pub struct RdBroadcast<'buf>(pub &'buf [u8; 6]);
 
 #[derive(Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
