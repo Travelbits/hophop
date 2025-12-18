@@ -13,8 +13,10 @@ pub mod mac_pdu;
 ///
 /// As this is not an actionable error, it has no inner structure.
 #[derive(Copy, Clone, Debug)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct ParsingError;
 
 /// An input slice mismatches the length usable the requested data item.
 #[derive(Copy, Clone, Debug)]
+#[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub struct InputLengthError;

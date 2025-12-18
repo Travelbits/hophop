@@ -61,102 +61,6 @@ fn log_header(header: &[u8]) {
     }
 }
 
-fn log_data(data: &[u8]) {
-    // Following ETSI TS 103 636-4 V2.1.1 Section 6.3
-    let version = data[0] >> 6;
-    if version == 3 {
-        warn!("Can not decode dect_shell ping (or whatever nonstandard version this is)");
-        return;
-    }
-    if version != numbers::mac_pdu::VERSION {
-        warn!("Unknown MAC version.");
-        return;
-    }
-    let mac_sec_version = data[0] >> 6;
-    let mac_hdr_type = data[0] & 0x0f;
-    let mac_hdr_type_name = match mac_hdr_type {
-        // FIXME: Add Formatter?
-        numbers::mac_pdu::header_type::DATA_MAC_PDU => "DATA MAC PDU",
-        numbers::mac_pdu::header_type::BEACON => "Beacon",
-        numbers::mac_pdu::header_type::UNICAST => "Unicast",
-        numbers::mac_pdu::header_type::RD_BROADCAST => "RD Broadcast",
-        _ => "unknown",
-    };
-    info!(
-        "Header data: MAC security {}, header type {} {}",
-        mac_sec_version, mac_hdr_type, mac_hdr_type_name
-    );
-    let end_common_header = match mac_hdr_type {
-        numbers::mac_pdu::header_type::DATA_MAC_PDU => {
-            let reset = (data[1] & 0x10) >> 4;
-            let seqno = (data[1] as u16 & 0x0f) << 8 | (data[2] as u16);
-
-            let transmitter = &data[4..8];
-            info!(
-                "DATA MAC PDU details: reset {}, seqno {}, from {}",
-                reset,
-                seqno,
-                Hex(&transmitter)
-            );
-            3
-        }
-        numbers::mac_pdu::header_type::BEACON => {
-            let long_nid = &data[1..4];
-            let transmitter = &data[4..8];
-            info!(
-                "Beacon details: Network {}, transmitter {}",
-                Hex(&long_nid),
-                Hex(&transmitter),
-            );
-            8
-        }
-        numbers::mac_pdu::header_type::UNICAST => {
-            let reset = (data[1] & 0x10) >> 4;
-            let mac_sequence = data[1] & 0x0f;
-            let seqno = data[2];
-            let receiver = &data[3..7];
-            let transmitter = &data[7..11];
-            info!(
-                "Unicast details: reset {}, mac_sequence {}, seqno {}, to {} from {}",
-                reset,
-                mac_sequence,
-                seqno,
-                Hex(&receiver),
-                Hex(&transmitter),
-            );
-            11
-        }
-        numbers::mac_pdu::header_type::RD_BROADCAST => {
-            let reset = (data[1] & 0x10) >> 4;
-            let seqno = (data[1] as u16 & 0x0f) << 8 | (data[2] as u16);
-            let transmitter = &data[3..7];
-            info!(
-                "RD Broadcast details: reset {}, seqno {}, from {}",
-                reset,
-                seqno,
-                Hex(&transmitter),
-            );
-            7
-        }
-        _ => {
-            info!("Unknown common header, can not decode further");
-            return;
-        }
-    };
-    if mac_sec_version != 0 {
-        info!("No link-layer security implemented, bailing.");
-        return;
-    }
-    for item in utils::mac_ie::InformationElement::parse_stream(&data[end_common_header..]) {
-        let Ok(item) = item else {
-            warn!("Failed to parse item, aborting.");
-            return;
-        };
-        info!("IE {:?}, payload {:?}", item.ie_number(), item.payload())
-    }
-    info!("Complete message processed.");
-}
-
 #[ariel_os::task(autostart)]
 async fn main() {
     let mut dect = hophop_examples::dect::DectPhy::init_inside_ariel().await.unwrap();
@@ -173,7 +77,7 @@ async fn main() {
             if let (Ok(start), Ok(pcc), Ok(pdc)) = (start, pcc, pdc) {
                 info!("Received at {}: {:?} {:?}", start, pcc, pdc);
                 log_header(pcc);
-                log_data(pdc);
+                info!("PCC: {:?}", utils::mac_pdu::Header::parse(pdc));
             } else {
                 warn!(
                     "Received partial transmission: {:?} {:?} {:?}",
