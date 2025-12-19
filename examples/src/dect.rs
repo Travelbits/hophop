@@ -59,6 +59,60 @@ impl From<PhyErr> for MixedError {
     }
 }
 
+macro_rules! latency_info {
+    () => {
+        nrfxlib_sys::nrf_modem_dect_phy_latency_info {
+            radio_mode: [
+                nrfxlib_sys::nrf_modem_dect_phy_latency_info__bindgen_ty_1 {
+                    scheduled_operation_transition: 25920,
+                    scheduled_operation_startup: 0,
+                    radio_mode_transition: [6912, 6912, 34905],
+                },
+                nrfxlib_sys::nrf_modem_dect_phy_latency_info__bindgen_ty_1 {
+                    scheduled_operation_transition: 25920,
+                    scheduled_operation_startup: 87782,
+                    radio_mode_transition: [45273, 6912, 21427],
+                },
+                nrfxlib_sys::nrf_modem_dect_phy_latency_info__bindgen_ty_1 {
+                    scheduled_operation_transition: 26956,
+                    scheduled_operation_startup: 42854,
+                    radio_mode_transition: [45273, 41472, 21427],
+                },
+            ],
+            operation: nrfxlib_sys::nrf_modem_dect_phy_latency_info__bindgen_ty_2 {
+                receive: nrfxlib_sys::nrf_modem_dect_phy_latency_info__bindgen_ty_2__bindgen_ty_1 {
+                    idle_to_active: 22118,
+                    active_to_idle_rssi: 13132,
+                    active_to_idle_rx: 12441,
+                    active_to_idle_rx_rssi: 16588,
+                    stop_to_rf_off: 14169,
+                },
+                transmit:
+                    nrfxlib_sys::nrf_modem_dect_phy_latency_info__bindgen_ty_2__bindgen_ty_2 {
+                        idle_to_active: 29030,
+                        active_to_idle: 7603,
+                    },
+            },
+            stack: nrfxlib_sys::nrf_modem_dect_phy_latency_info__bindgen_ty_3 {
+                initialization: 2764800,
+                deinitialization: 62208,
+                configuration: 7119360,
+                activation: 2972160,
+                deactivation: 58752,
+            },
+        }
+    };
+}
+/// Latency as reported by nRF nr+ firmware 1.1.0.
+///
+/// Until we find that we actually need all of this, checking at startup allows us to reach into
+/// the const for access whenever we need it, without needing to worry about how to get data
+/// around.
+///
+/// This is sent through a macro because there is no PartialEq on it, but we still want to do a
+/// comparison, and matches! works on the literal form the macro gives.
+const LATENCY_INFO: nrfxlib_sys::nrf_modem_dect_phy_latency_info = latency_info!();
+
 // FIXME: What's a good length? Probably events can pile up, like "here's the last data and by the
 // way the transaction is now complete". And do we need the CS mutex?
 static DECT_EVENTS: embassy_sync::channel::Channel<CriticalSectionRawMutex, DectEventOuter, 4> =
@@ -164,6 +218,7 @@ enum DectEvent {
     Activate,
     Configure,
     TimeGet,
+    LatencyGet,
     Completed(PhyResult),
     /// This is both the EVT_PCC_ERROR that really is just CRC error, or failures during processing
     /// of a PCC.
@@ -343,6 +398,25 @@ extern "C" fn dect_event(arg: *const nrfxlib_sys::nrf_modem_dect_phy_event) {
         nrfxlib_sys::nrf_modem_dect_phy_event_id_NRF_MODEM_DECT_PHY_EVT_PDC_ERROR => {
             DectEvent::PdcError
         }
+        nrfxlib_sys::nrf_modem_dect_phy_event_id_NRF_MODEM_DECT_PHY_EVT_LATENCY => {
+            // SAFETY: Checked the discriminator
+            let latency = unsafe { &arg.__bindgen_anon_1.latency_get };
+            assert_eq!(
+                latency.err,
+                nrfxlib_sys::nrf_modem_dect_phy_err_NRF_MODEM_DECT_PHY_SUCCESS,
+            );
+            // SAFETY: Implied by the C API
+            let latency = unsafe { &*latency.latency_info };
+
+            // If and when this triggers, we'll know better which pieces we need of it.
+            assert!(
+                matches!(*latency, latency_info!()),
+                "Latency changed compared to known firmware versions."
+            );
+
+            defmt::trace!("Latency confirmed: {:?}", defmt::Debug2Format(&latency));
+            DectEvent::LatencyGet
+        }
         _ => {
             defmt::warn!("Event had no known handler");
             return;
@@ -387,6 +461,17 @@ impl DectPhy {
         } = DECT_EVENTS.receive().await
         else {
             panic!("Sequence violation: Event before Init event");
+        };
+
+        // We have to call this before setting a modem mode: After, it will return
+        // NRF_MODEM_DECT_PHY_ERR_NOT_ALLOWED.
+        unsafe { nrfxlib_sys::nrf_modem_dect_phy_latency_get() }.into_result()?;
+        let DectEventOuter {
+            event: DectEvent::LatencyGet,
+            ..
+        } = DECT_EVENTS.receive().await
+        else {
+            panic!("Sequence violation");
         };
 
         // FIXME take parameters
