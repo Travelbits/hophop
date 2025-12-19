@@ -9,187 +9,21 @@
 //! list of handle slots, or more actions inside the interrupt) might be added later, or
 //! independently (using [`nrfxlib_sys`] and working off [`crate::init_dect_with_custom_layout`]).
 
-use embassy_sync::{
-    blocking_mutex::raw::CriticalSectionRawMutex,
-    mutex::{Mutex, MutexGuard},
-};
-use nrf_modem::nrfxlib_sys;
-use nrf_modem::{Error, ErrorSource, MemoryLayout, init_with_custom_layout_core};
+use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, mutex::Mutex};
+use nrf_modem::{Error, ErrorSource, nrfxlib_sys};
 
-const _: () = const {
-    assert!(
-        nrfxlib_sys::nrf_modem_dect_phy_err_NRF_MODEM_DECT_PHY_SUCCESS == 0,
-        "Constant for success switched and is now not aligned with Result niche optimization."
-    )
-};
-#[derive(Debug, defmt::Format)]
-pub struct PhyErr(core::num::NonZeroU16);
-type PhyResult = Result<(), PhyErr>;
+mod error;
+use error::{MixedError, PhyResult, PhyResultExt as _};
 
-trait PhyResultExt {
-    fn into_phy_result(self) -> PhyResult;
-}
+mod latency;
 
-impl PhyResultExt for u16 {
-    fn into_phy_result(self) -> PhyResult {
-        match core::num::NonZeroU16::try_from(self) {
-            Ok(v) => Err(PhyErr(v)),
-            Err(_) => Ok(()),
-        }
-    }
-}
-
-/// Error type that encompasses both styles of errors returned by the libmodem APIs.
-#[derive(Debug)]
-pub enum MixedError {
-    General(Error),
-    Phy(PhyErr),
-    UsageError,
-}
-
-impl From<Error> for MixedError {
-    fn from(input: Error) -> Self {
-        MixedError::General(input)
-    }
-}
-
-impl From<PhyErr> for MixedError {
-    fn from(input: PhyErr) -> Self {
-        MixedError::Phy(input)
-    }
-}
-
-macro_rules! latency_info {
-    () => {
-        nrfxlib_sys::nrf_modem_dect_phy_latency_info {
-            radio_mode: [
-                nrfxlib_sys::nrf_modem_dect_phy_latency_info__bindgen_ty_1 {
-                    scheduled_operation_transition: 25920,
-                    scheduled_operation_startup: 0,
-                    radio_mode_transition: [6912, 6912, 34905],
-                },
-                nrfxlib_sys::nrf_modem_dect_phy_latency_info__bindgen_ty_1 {
-                    scheduled_operation_transition: 25920,
-                    scheduled_operation_startup: 87782,
-                    radio_mode_transition: [45273, 6912, 21427],
-                },
-                nrfxlib_sys::nrf_modem_dect_phy_latency_info__bindgen_ty_1 {
-                    scheduled_operation_transition: 26956,
-                    scheduled_operation_startup: 42854,
-                    radio_mode_transition: [45273, 41472, 21427],
-                },
-            ],
-            operation: nrfxlib_sys::nrf_modem_dect_phy_latency_info__bindgen_ty_2 {
-                receive: nrfxlib_sys::nrf_modem_dect_phy_latency_info__bindgen_ty_2__bindgen_ty_1 {
-                    idle_to_active: 22118,
-                    active_to_idle_rssi: 13132,
-                    active_to_idle_rx: 12441,
-                    active_to_idle_rx_rssi: 16588,
-                    stop_to_rf_off: 14169,
-                },
-                transmit:
-                    nrfxlib_sys::nrf_modem_dect_phy_latency_info__bindgen_ty_2__bindgen_ty_2 {
-                        idle_to_active: 29030,
-                        active_to_idle: 7603,
-                    },
-            },
-            stack: nrfxlib_sys::nrf_modem_dect_phy_latency_info__bindgen_ty_3 {
-                initialization: 2764800,
-                deinitialization: 62208,
-                configuration: 7119360,
-                activation: 2972160,
-                deactivation: 58752,
-            },
-        }
-    };
-}
-/// Latency as reported by nRF nr+ firmware 1.1.0.
-///
-/// Until we find that we actually need all of this, checking at startup allows us to reach into
-/// the const for access whenever we need it, without needing to worry about how to get data
-/// around.
-///
-/// This is sent through a macro because there is no PartialEq on it, but we still want to do a
-/// comparison, and matches! works on the literal form the macro gives.
-const LATENCY_INFO: nrfxlib_sys::nrf_modem_dect_phy_latency_info = latency_info!();
+mod rssi;
+mod rx;
 
 // FIXME: What's a good length? Probably events can pile up, like "here's the last data and by the
 // way the transaction is now complete". And do we need the CS mutex?
 static DECT_EVENTS: embassy_sync::channel::Channel<CriticalSectionRawMutex, DectEventOuter, 4> =
     embassy_sync::channel::Channel::new();
-
-#[derive(Debug, defmt::Format, Copy, Clone)]
-#[non_exhaustive]
-pub enum PccError {
-    CrcError,
-    UnexpectedEventDetails,
-}
-
-#[derive(Debug, defmt::Format, Copy, Clone)]
-#[non_exhaustive]
-pub enum PdcError {
-    CrcError,
-    OutOfSpace,
-    // Maybe if it straddled the timeout? I did observe this when sender and recipient timeouts
-    // could have lined up.
-    NotReceived,
-    PccError(PccError),
-}
-
-/// Details of a [`RecvResult`] that did result in data being received.
-#[derive(Copy, Clone)]
-pub struct RecvOk {
-    pub pcc_time: u64,
-    pub pcc_len: usize,
-    pub pdc_len: Result<usize, PdcError>,
-}
-
-/// Result of a single receive operation.
-///
-/// This keeps a lock on the receive buffer, and must therefore be dropped before the next attempt
-/// to perform any other operation.
-pub struct RecvResult<'a> {
-    data: MutexGuard<'static, CriticalSectionRawMutex, heapless::Vec<u8, 2400>>,
-    indices: Result<RecvOk, PccError>,
-    // This ensures that a .recv() result is used before the next attempt to receive something (as
-    // that would panic around locking RECV_BUF).
-    _phantom: core::marker::PhantomData<&'a mut ()>,
-}
-
-impl<'a> RecvResult<'a> {
-    pub fn pcc_time(&self) -> Result<u64, PccError> {
-        Ok(self.indices?.pcc_time)
-    }
-    pub fn pcc(&self) -> Result<&[u8], PccError> {
-        Ok(&self.data[..self.indices?.pcc_len])
-    }
-    pub fn pdc(&self) -> Result<&[u8], PdcError> {
-        let pcc_and_rest = self.indices.map_err(PdcError::PccError)?;
-        let start = pcc_and_rest.pcc_len;
-        let len = pcc_and_rest.pdc_len?;
-        self.data
-            .get(start..start + len)
-            .ok_or(PdcError::OutOfSpace)
-    }
-}
-
-/// Resulting data slice of a single RSSI measurement.
-///
-/// This keeps a lock on the receive buffer, and must therefore be dropped before the next attempt
-/// to perform any other operation.
-pub struct RssiResult<'a>(
-    MutexGuard<'static, CriticalSectionRawMutex, heapless::Vec<u8, 2400>>,
-    core::ops::Range<usize>,
-    // This ensures that a result is used before the next attempt to receive something (as
-    // that would panic around locking RECV_BUF).
-    core::marker::PhantomData<&'a mut ()>,
-);
-
-impl<'a> RssiResult<'a> {
-    pub fn data(&self) -> &[u8] {
-        &self.0[self.1.clone()]
-    }
-}
 
 /// Kind of a bump allocator for data that doesn't fit in the events.
 ///
@@ -222,7 +56,7 @@ enum DectEvent {
     Completed(PhyResult),
     /// This is both the EVT_PCC_ERROR that really is just CRC error, or failures during processing
     /// of a PCC.
-    PccError(PccError),
+    PccError(rx::PccError),
     /// PCC with time and length inside recvbuf
     // If we start doing multiple recvs, we can't just upgrade this to a range here and in PCD,
     // also not to Option<Range> in case it didn't fit, but need to stream it out through a ring
@@ -343,7 +177,7 @@ extern "C" fn dect_event(arg: *const nrfxlib_sys::nrf_modem_dect_phy_event) {
             let header_len = match pcc.phy_type {
                 0 => 5,
                 1 => 10,
-                _ => break 'eventresult DectEvent::PccError(PccError::UnexpectedEventDetails),
+                _ => break 'eventresult DectEvent::PccError(rx::PccError::UnexpectedEventDetails),
             };
             // SAFETY: As per struct details.
             // (Easier to pass this on as bytes and do our own field access later)
@@ -371,7 +205,7 @@ extern "C" fn dect_event(arg: *const nrfxlib_sys::nrf_modem_dect_phy_event) {
             DectEvent::Pcc(pcc.stf_start_time, header.len())
         }
         nrfxlib_sys::nrf_modem_dect_phy_event_id_NRF_MODEM_DECT_PHY_EVT_PCC_ERROR => {
-            DectEvent::PccError(PccError::CrcError)
+            DectEvent::PccError(rx::PccError::CrcError)
         }
         nrfxlib_sys::nrf_modem_dect_phy_event_id_NRF_MODEM_DECT_PHY_EVT_PDC => {
             // SAFETY: Checked the discriminator
@@ -410,7 +244,7 @@ extern "C" fn dect_event(arg: *const nrfxlib_sys::nrf_modem_dect_phy_event) {
 
             // If and when this triggers, we'll know better which pieces we need of it.
             assert!(
-                matches!(*latency, latency_info!()),
+                latency::latency_is_expected(latency),
                 "Latency changed compared to known firmware versions."
             );
 
@@ -528,152 +362,6 @@ impl DectPhy {
         );
         recvbuf.clear();
         drop(recvbuf);
-    }
-
-    pub async fn rssi(&mut self, carrier: u16) -> Result<(u64, RssiResult<'_>), MixedError> {
-        self.clear_recvbuf();
-
-        // Relevant DECT constant timing parameters are 1 frame = 10ms, each 10ms frame is composed
-        // of 24 slots,
-
-        // - Reporting interval is every 12 or 24 slots. This is consistent with the delta of
-        //   starting times being precisely 691200 (24 slots = 10ms, on a 69.120MHz clock), or
-        //   345600 (12 slots = 5ms).
-        //
-        // - Depending on the reporting interval there are 240 or 120 values, so single reading
-        //   takes 2880 clock ticks, or 10 readings per slot, which corresponds to lowest number of
-        //   ODFM symbols (for µ=1).
-        //
-        // - Requesting a duration of N gives 5*N readings. This is given in subslots, which for
-        //   µ=1 is 2 subslots per slot, and thus matches 10 readings per slot, 5 per subslot.
-
-        let params = nrfxlib_sys::nrf_modem_dect_phy_rssi_params {
-            start_time: 0,
-            handle: 1234567,
-            carrier,
-            duration: 48, // in subslots; 1 full report
-            reporting_interval: nrfxlib_sys::nrf_modem_dect_phy_rssi_interval_NRF_MODEM_DECT_PHY_RSSI_INTERVAL_24_SLOTS, // 24 slots = 10ms
-        };
-        unsafe { nrfxlib_sys::nrf_modem_dect_phy_rssi(&params) }.into_result()?;
-
-        let mut result = None;
-
-        loop {
-            match DECT_EVENTS.receive().await.event {
-                DectEvent::Rssi(start, range) => {
-                    debug_assert!(result.is_none(), "Sequence violation");
-                    result = Some((
-                        start,
-                        range.expect("We requested just one run, that fits in the receive buffer"),
-                    ));
-                }
-                DectEvent::Completed(Ok(())) => {
-                    break;
-                }
-                DectEvent::Completed(e) => e?,
-                _ => panic!("Sequence violation"),
-            }
-        }
-
-        let Some(result) = result else {
-            // FIXME: Verify that it's an actual completion error that happens when requesting an
-            // unsupported channel.
-            panic!("Sequence violation");
-        };
-
-        Ok((
-            result.0,
-            RssiResult(
-                RECVBUF
-                    .try_lock()
-                    .expect("Was checked before, and ISR users release this before returning"),
-                result.1,
-                core::marker::PhantomData,
-            ),
-        ))
-    }
-
-    // FIXME: heapless is not great for signature yet
-    pub async fn rx(&mut self) -> Result<Option<RecvResult<'_>>, MixedError> {
-        self.clear_recvbuf();
-
-        unsafe {
-            // FIXME: everything
-            nrfxlib_sys::nrf_modem_dect_phy_rx(&nrfxlib_sys::nrf_modem_dect_phy_rx_params {
-                start_time: 0,
-                handle: 54321,
-                network_id: 0x12345678, // like dect_shell defaults
-                mode: nrfxlib_sys::nrf_modem_dect_phy_rx_mode_NRF_MODEM_DECT_PHY_RX_MODE_SINGLE_SHOT,
-                rssi_interval: nrfxlib_sys::nrf_modem_dect_phy_rssi_interval_NRF_MODEM_DECT_PHY_RSSI_INTERVAL_OFF,
-                link_id: nrfxlib_sys::nrf_modem_dect_phy_link_id {
-                    short_network_id: 0,
-                    short_rd_id: 0,
-                },
-                rssi_level: 0,
-                carrier: 1665, // like dect_shell ping default
-                // ~ 1 second
-                duration: 70000000,
-                filter: nrfxlib_sys::nrf_modem_dect_phy_rx_filter {
-                    short_network_id: 0,
-                    is_short_network_id_used: 0,
-                    receiver_identity: 0,
-                },
-            })
-        }
-        .into_result()?;
-
-        let mut pcc = None;
-        let mut pdc = None;
-
-        loop {
-            match DECT_EVENTS.receive().await.event {
-                DectEvent::Pcc(start, pcc_len) => {
-                    debug_assert!(pcc.is_none(), "Sequence violation");
-                    pcc = Some(Ok((start, pcc_len)));
-                }
-                DectEvent::PccError(e) => {
-                    debug_assert!(pcc.is_none(), "Sequence violation");
-                    pcc = Some(Err(e));
-                }
-                DectEvent::Pdc(pcd_len) => {
-                    debug_assert!(pdc.is_none(), "Sequence violation");
-                    pdc = Some(Ok(pcd_len));
-                }
-                DectEvent::PdcError => {
-                    debug_assert!(pdc.is_none(), "Sequence violation");
-                    pdc = Some(Err(PdcError::CrcError));
-                }
-                DectEvent::Completed(Ok(())) => {
-                    break;
-                }
-                DectEvent::Completed(e) => e?,
-                _ => panic!("Sequence violation"),
-            }
-        }
-
-        let result = match (pcc, pdc) {
-            (None, None) => return Ok(None),
-            (Some(Err(e)), None) => Err(e),
-            (Some(Ok((pcc_time, pcc_len))), None) => Ok(RecvOk {
-                pcc_time,
-                pcc_len,
-                pdc_len: Err(PdcError::NotReceived),
-            }),
-            (Some(Ok((pcc_time, pcc_len))), Some(pdc_len)) => Ok(RecvOk {
-                pcc_time,
-                pcc_len,
-                pdc_len,
-            }),
-            _ => panic!("Sequence violation"),
-        };
-
-        Ok(Some(RecvResult {
-            data: RECVBUF
-                .try_lock()
-                .expect("Was checked before, and ISR users release this before returning"),
-            indices: result,
-            _phantom: core::marker::PhantomData,
-        }))
     }
 
     /// Transmit a message at the indicated time, or immediately if start_time is 0.
