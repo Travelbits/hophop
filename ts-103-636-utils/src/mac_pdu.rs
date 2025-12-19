@@ -50,14 +50,14 @@ impl DataMacPdu<'_> {
 }
 
 #[cfg(feature = "defmt")]
-impl<'buf> defmt::Format for DataMacPdu<'buf> {
+impl defmt::Format for DataMacPdu<'_> {
     fn format(&self, fmt: defmt::Formatter) {
         defmt::write!(
             fmt,
             "DataMacPdu {{ reset: {=bool}, sequence number: {=u16} }}",
             self.reset(),
             self.sequence_number(),
-        )
+        );
     }
 }
 
@@ -80,14 +80,14 @@ impl Beacon<'_> {
 }
 
 #[cfg(feature = "defmt")]
-impl<'buf> defmt::Format for Beacon<'buf> {
+impl defmt::Format for Beacon<'_> {
     fn format(&self, fmt: defmt::Formatter) {
         defmt::write!(
             fmt,
             "Beacon {{ network id: {=u32}, transmitter address: {=u32} }}",
             self.network_id(),
             self.transmitter_address(),
-        )
+        );
     }
 }
 
@@ -127,7 +127,7 @@ impl Unicast<'_> {
 }
 
 #[cfg(feature = "defmt")]
-impl<'buf> defmt::Format for Unicast<'buf> {
+impl defmt::Format for Unicast<'_> {
     fn format(&self, fmt: defmt::Formatter) {
         defmt::write!(
             fmt,
@@ -136,7 +136,7 @@ impl<'buf> defmt::Format for Unicast<'buf> {
             self.sequence_number(),
             self.receiver_address(),
             self.transmitter_address(),
-        )
+        );
     }
 }
 
@@ -166,7 +166,7 @@ impl RdBroadcast<'_> {
 }
 
 #[cfg(feature = "defmt")]
-impl<'buf> defmt::Format for RdBroadcast<'buf> {
+impl defmt::Format for RdBroadcast<'_> {
     fn format(&self, fmt: defmt::Formatter) {
         defmt::write!(
             fmt,
@@ -174,7 +174,7 @@ impl<'buf> defmt::Format for RdBroadcast<'buf> {
             self.reset(),
             self.sequence_number(),
             self.transmitter_address(),
-        )
+        );
     }
 }
 
@@ -263,7 +263,7 @@ impl<'buf> Header<'buf> {
 }
 
 #[cfg(feature = "defmt")]
-impl<'buf> defmt::Format for Header<'buf> {
+impl defmt::Format for Header<'_> {
     fn format(&self, fmt: defmt::Formatter) {
         defmt::write!(
             fmt,
