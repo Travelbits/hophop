@@ -18,7 +18,7 @@ pub struct RssiResult<'a>(
     core::marker::PhantomData<&'a mut ()>,
 );
 
-impl<'a> RssiResult<'a> {
+impl RssiResult<'_> {
     pub fn data(&self) -> &[u8] {
         &self.0[self.1.clone()]
     }
@@ -49,7 +49,7 @@ impl DectPhy {
             duration: 48, // in subslots; 1 full report
             reporting_interval: nrfxlib_sys::nrf_modem_dect_phy_rssi_interval_NRF_MODEM_DECT_PHY_RSSI_INTERVAL_24_SLOTS, // 24 slots = 10ms
         };
-        unsafe { nrfxlib_sys::nrf_modem_dect_phy_rssi(&params) }.into_result()?;
+        unsafe { nrfxlib_sys::nrf_modem_dect_phy_rssi(&raw const params) }.into_result()?;
 
         let mut result = None;
 

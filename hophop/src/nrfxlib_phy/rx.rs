@@ -44,7 +44,7 @@ pub struct RecvResult<'a> {
     _phantom: core::marker::PhantomData<&'a mut ()>,
 }
 
-impl<'a> RecvResult<'a> {
+impl RecvResult<'_> {
     pub fn pcc_time(&self) -> Result<u64, PccError> {
         Ok(self.indices?.pcc_time)
     }

@@ -47,7 +47,7 @@ enum DectEvent {
     TimeGet,
     LatencyGet,
     Completed(PhyResult),
-    /// This is both the EVT_PCC_ERROR that really is just CRC error, or failures during processing
+    /// This is both the `EVT_PCC_ERROR` that really is just CRC error, or failures during processing
     /// of a PCC.
     PccError(rx::PccError),
     /// PCC with time and length inside recvbuf
@@ -254,7 +254,7 @@ extern "C" fn dect_event(arg: *const nrfxlib_sys::nrf_modem_dect_phy_event) {
             event,
             time: arg.time,
         })
-        .expect("Queue is managed")
+        .expect("Queue is managed");
 }
 
 pub struct DectPhy(());
@@ -307,7 +307,7 @@ impl DectPhy {
             harq_rx_process_count: 4,
             harq_rx_expiry_time_us: 1000000,
         };
-        unsafe { nrfxlib_sys::nrf_modem_dect_phy_configure(&params) }.into_result()?;
+        unsafe { nrfxlib_sys::nrf_modem_dect_phy_configure(&raw const params) }.into_result()?;
         let DectEventOuter {
             event: DectEvent::Configure,
             ..
@@ -357,9 +357,9 @@ impl DectPhy {
         drop(recvbuf);
     }
 
-    /// Transmit a message at the indicated time, or immediately if start_time is 0.
+    /// Transmit a message at the indicated time, or immediately if `start_time` is 0.
     ///
-    /// The network_id influences scrambling. Pass in the full 32-bit network ID; this function
+    /// The `network_id` influences scrambling. Pass in the full 32-bit network ID; this function
     /// picks it apart depending on the PCC length. Beware that this is required to be non-zero.
     pub async fn tx(
         &mut self,
@@ -405,7 +405,7 @@ impl DectPhy {
                 phy_header: pcc.as_ptr() as _,
                 bs_cqi: nrfxlib_sys::NRF_MODEM_DECT_PHY_BS_CQI_NOT_USED as _,
                 // Missing `const` in C? They won't really write in there, will they?
-                data: pdc.as_ptr() as *mut _,
+                data: pdc.as_ptr().cast_mut(),
                 data_size: pdc.len() as _,
             })
         }

@@ -7,7 +7,7 @@ const _: () = const {
     assert!(
         nrfxlib_sys::nrf_modem_dect_phy_err_NRF_MODEM_DECT_PHY_SUCCESS == 0,
         "Constant for success switched and is now not aligned with Result niche optimization."
-    )
+    );
 };
 #[derive(Debug, defmt::Format)]
 pub struct PhyErr(core::num::NonZeroU16);
