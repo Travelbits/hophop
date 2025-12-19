@@ -1644,15 +1644,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
+name = "hophop"
+version = "0.0.1"
+dependencies = [
+ "defmt",
+ "embassy-sync 0.7.2",
+ "heapless 0.9.2",
+ "nrf-modem",
+ "ts-103-636-numbers",
+ "ts-103-636-utils",
+]
+
+[[package]]
 name = "hophop-examples"
 version = "0.0.0"
 dependencies = [
  "ariel-os",
  "ariel-os-boards",
- "defmt",
- "embassy-sync 0.7.2",
  "heapless 0.9.2",
- "nrf-modem",
+ "hophop",
  "ts-103-636-numbers",
  "ts-103-636-utils",
 ]
@@ -1921,6 +1931,7 @@ dependencies = [
  "futures",
  "grounded",
  "linked_list_allocator",
+ "nrf9120-pac",
  "nrfxlib-sys",
  "num_enum",
 ]
@@ -1933,6 +1944,16 @@ checksum = "d334027d6703534f2a80de0794ae435c0e029358d28278533d3935e69b221b01"
 dependencies = [
  "cortex-m",
  "cortex-m-rt",
+]
+
+[[package]]
+name = "nrf9120-pac"
+version = "0.12.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c012f18dc278aa33741722d374bc84e3d2d7694e29745f0bb83e56b2d6faf9b"
+dependencies = [
+ "cortex-m",
+ "vcell",
 ]
 
 [[package]]

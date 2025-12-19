@@ -6,13 +6,11 @@ version = "0.0.0"
 edition = "2024"
 
 [dependencies]
+hophop.path = "../hophop"
+
 ariel-os = { path = "build/imports/ariel-os/src/ariel-os", features = ["time"] }
 ariel-os-boards = { path = "build/imports/ariel-os/src/ariel-os-boards" }
 heapless = { version = "0.9.2", features = ["embedded-io-v0.7"] }
 
-embassy-sync = "0.7.2"
-defmt = "1"
-
-nrf-modem = { version = "*", features = ["dect"] }
 ts-103-636-numbers = { path = "../ts-103-636-numbers/", features = ["defmt"] }
 ts-103-636-utils = { path = "../ts-103-636-utils/", features = ["defmt"] }

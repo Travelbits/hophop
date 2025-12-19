@@ -19,5 +19,9 @@ repository = "https://github.com/ariel-os/hophop/"
 keywords = ["dect", "nr+"]
 categories = ["no-std::no-alloc"]
 
+[patch.crates-io]
+# nrf-modem: https://github.com/diondokter/nrf-modem/pull/53, branch = "dect-examples"
+nrf-modem = { git = "https://github.com/chrysn-pull-requests/nrf-modem", rev = "20f79536753be06a3516ce0ad3099245d8912aca" }
+
 [workspace.metadata.release]
 sign-tag = true
