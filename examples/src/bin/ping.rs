@@ -14,9 +14,11 @@ use ts_103_636_utils as utils;
 
 #[ariel_os::task(autostart, peripherals)]
 async fn main(peripherals: pins::ButtonPeripherals) {
-    let mut dect = hophop_examples::dect::DectPhy::init_inside_ariel()
-        .await
-        .unwrap();
+    let mut dect = hophop::nrfxlib_phy::DectPhy::init_after_modem_init(
+        ariel_os::hal::modem::take_modem().await,
+    )
+    .await
+    .unwrap();
 
     let transmitter_id = &ariel_os::identity::interface_eui48(0).unwrap();
     let transmitter_id_short = u16::from_be_bytes(transmitter_id.0[..2].try_into().unwrap());

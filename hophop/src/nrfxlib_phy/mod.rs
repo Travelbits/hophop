@@ -1,13 +1,6 @@
 // SPDX-FileCopyrightText: Copyright Christian Amsüss <chrysn@fsfe.org>, Silano Systems
 // SPDX-License-Identifier: MIT OR Apache-2.0
 //! High-level wrappers around the DECT PHY.
-//!
-//! This implementation does *not* try to be friendly to highly concurrent operations; rather, it
-//! aims for ease of use and getting things done.
-//!
-//! More elaborate versions (e.g. supporting concurrently enqueued actions using a preconfigured
-//! list of handle slots, or more actions inside the interrupt) might be added later, or
-//! independently (using [`nrfxlib_sys`] and working off [`crate::init_dect_with_custom_layout`]).
 
 use embassy_sync::{blocking_mutex::raw::CriticalSectionRawMutex, mutex::Mutex};
 use nrf_modem::{Error, ErrorSource, nrfxlib_sys};
@@ -268,12 +261,12 @@ pub struct DectPhy(());
 
 impl DectPhy {
     /// Starts the NRF Modem library with a manually specified memory layout
-    pub async fn init_inside_ariel() -> Result<Self, Error> {
-        // FIXME: All else of this is Ariel OS independent, but Ariel needs to set up the memory
-        // layout on its own to get linking right. This needs a better boundary (likely take_modem
-        // taking a layout, and forwarding a token of initialization from the nrf_modem library).
-        ariel_os::hal::modem::take_modem().await;
-
+    ///
+    /// The `_modem_is_set_up` argument is a stand-in for that there *should* be some assurance
+    /// value returned from the OS that the modem was indeed set up (ideally: with some
+    /// parameters); the `()` tuple is a stand-in that will evolve as Ariel OS's `take_modem()`
+    /// will evolve.
+    pub async fn init_after_modem_init(_modem_is_set_up: ()) -> Result<Self, Error> {
         defmt::trace!("Setting DECT handler");
 
         // Note that unlike typical C callbacks, this callback setup takes no argument -- if it did, we
