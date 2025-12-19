@@ -11,13 +11,14 @@ set -ex
 
 pipx run reuse lint
 
-RUSTFLAGS="-D warnings" cargo check
-RUSTFLAGS="-D warnings" cargo check --all-features
-cargo clippy -- --deny clippy::all --deny clippy::pedantic
-RUSTDOCFLAGS="-D warnings" cargo doc --all-features
+RUSTFLAGS="-D warnings" cargo check --workspace
+RUSTFLAGS="-D warnings" cargo check --workspace --all-features
+cargo clippy --workspace -- --deny clippy::all --deny clippy::pedantic
+RUSTDOCFLAGS="-D warnings" cargo doc --workspace --all-features
 cargo fmt --check
-cargo test
-cargo test --all-features
+# hophop can't be built on host architectures
+cargo test --workspace --exclude hophop
+cargo test --workspace --all-features --exclude hophop
 
 for DIR in ts-103-636-numbers ts-103-636-utils
 do
